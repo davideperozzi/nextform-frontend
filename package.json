@@ -1,0 +1,27 @@
+{
+  "name": "nextform-frontend",
+  "version": "1.0.0",
+  "description": "Frontend component for the nextform library",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davideperozzi/nextform-frontend.git"
+  },
+  "keywords": [
+    "nextform",
+    "frontend",
+    "js",
+    "google-closure"
+  ],
+  "author": "Davide Perozzi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davideperozzi/nextform-frontend/issues"
+  },
+  "homepage": "https://github.com/davideperozzi/nextform-frontend#readme",
+  "dependencies": {
+    "dj-library": "^1.0.98"
+  }
+}
