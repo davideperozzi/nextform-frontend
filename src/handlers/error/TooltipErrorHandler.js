@@ -85,58 +85,60 @@ nextform.handlers.error.TooltipErrorHandler.prototype.execute = function(errors)
     var nextName = names[0];
     var nextError = errors.get(nextName);
 
-    if (this.formular.fields.containsKey(nextName)) {
-        var nextField = this.formular.fields.get(nextName);
+    if (this.form.fields.containsKey(nextName)) {
+        var nextField = this.form.fields.get(nextName);
 
         this.tooltip_.show(
-            nextField.elements[0],
+            nextField.errorTarget || nextField.elements[0],
             nextError[0].message
         );
 
         if (this.config.get('hideOnClick')) {
             this.elementHandler_.listenOnce(this.tooltip_.getElement(),
-                goog.events.EventType.CLICK, function(){
-                    this.tooltip_.hide();
-                });
+                goog.events.EventType.CLICK, this.hide);
         }
 
         if (this.config.get('hideOnInteraction')) {
+            if (nextField.errorTarget) {
+                this.elementHandler_.listenOnce(nextField.errorTarget, [
+                    goog.events.EventType.CLICK, goog.events.EventType.FOCUS
+                ], this.hide);
+            }
+
             if (nextField instanceof nextform.models.fields.CollectionFieldModel) {
                 for (var i = 0, len = nextField.fields.length; i < len; i++) {
-                    for (var ii in nextField.fields[i].elements) {
-                        this.elementHandler_.listenOnce(nextField.fields[i].elements[ii],
-                            [
-                                goog.events.EventType.CLICK,
-                                goog.events.EventType.FOCUS
-                            ],
-                            function(){
-                                this.tooltip_.hide();
-                            }
-                        );
+                    var fieldElements = nextField.fields[i].elements;
+
+                    for (var i1 = 0, len1 = fieldElements.length; i1 < len1; i1++) {
+                        this.elementHandler_.listenOnce(fieldElements[i1], [
+                            goog.events.EventType.CLICK, goog.events.EventType.FOCUS
+                        ], this.hide);
                     }
                 }
             }
             else {
                 for (var i = 0, len = nextField.elements.length; i < len; i++) {
-                    this.elementHandler_.listenOnce(nextField.elements[i],
-                        [
-                            goog.events.EventType.CLICK,
-                            goog.events.EventType.FOCUS
-                        ],
-                        function(){
-                            this.tooltip_.hide();
-                        }
-                    );
+                    this.elementHandler_.listenOnce(nextField.elements[i], [
+                        goog.events.EventType.CLICK, goog.events.EventType.FOCUS
+                    ], this.hide);
                 }
             }
         }
 
         if (this.config.get('autoHide')) {
             this.hideTimeout_ = setTimeout(function(){
-                this.tooltip_.hide();
+                this.hide();
             }.bind(this), this.config.get('autoHideMs') || 5000);
         }
     }
+};
+
+/**
+ * @public
+ */
+nextform.handlers.error.TooltipErrorHandler.prototype.hide = function()
+{
+    this.tooltip_.hide();
 };
 
 /**

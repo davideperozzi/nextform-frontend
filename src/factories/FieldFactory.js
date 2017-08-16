@@ -16,7 +16,7 @@ nextform.factories.FieldFactory = function()
 {
     /**
      * @private
-     * @type {goog.structs.Map<string, function(name: string, elements: Array<Element>)>}
+     * @type {goog.structs.Map<string, Function>}
      */
     this.ctors_ = new goog.structs.Map({
         'input': nextform.models.fields.InputFieldModel,
@@ -55,6 +55,18 @@ nextform.factories.FieldFactory.prototype.createField = function(name, elements)
 
     var ctor = this.ctors_.get(tags[0]);
     var field = new ctor(name, elements);
+
+    for (var i = 0, len = elements.length; i < len; i++) {
+        if (goog.dom.dataset.has(elements[i], 'errorTarget')) {
+            var targetClass = /** @type {string} */ (goog.dom.dataset.get(elements[i], 'errorTarget'));
+            var targetElement = goog.dom.getAncestorByClass(elements[i], targetClass);
+
+            field.errorTarget = targetElement;
+            break;
+        }
+    }
+
+    // console.log(elements);
 
     return field;
 };

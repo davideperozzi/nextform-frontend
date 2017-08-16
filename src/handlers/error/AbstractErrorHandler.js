@@ -5,16 +5,16 @@ goog.require('goog.asserts');
 goog.require('goog.structs.Map');
 
 /**
- * @construct
+ * @constructor
  * @param {Object|goog.structs.Map<string, string|number>=} optDefaultconfig
  */
 nextform.handlers.error.AbstractErrorHandler = function(optDefaultconfig)
 {
     /**
      * @protected
-     * @type {nextform.models.FormularModel}
+     * @type {nextform.models.FormModel}
      */
-    this.formular = null;
+    this.form = null;
 
     /**
      * @protected
@@ -28,7 +28,7 @@ nextform.handlers.error.AbstractErrorHandler = function(optDefaultconfig)
  */
 nextform.handlers.error.AbstractErrorHandler.prototype.init = function()
 {
-    goog.asserts.assert(this.formular != null, 'Error handler needs a formular');
+    goog.asserts.assert(this.form != null, 'Error handler needs a form');
 };
 
 /**
@@ -42,11 +42,19 @@ nextform.handlers.error.AbstractErrorHandler.prototype.execute = function(errors
 
 /**
  * @public
- * @param {nextform.models.FormularModel} formular
  */
-nextform.handlers.error.AbstractErrorHandler.prototype.setFormular = function(formular)
+nextform.handlers.error.AbstractErrorHandler.prototype.hide = function()
 {
-    this.formular = formular;
+
+};
+
+/**
+ * @public
+ * @param {nextform.models.FormModel} form
+ */
+nextform.handlers.error.AbstractErrorHandler.prototype.setForm = function(form)
+{
+    this.form = form;
 };
 
 /**

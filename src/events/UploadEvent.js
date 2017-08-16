@@ -6,25 +6,32 @@ goog.require('goog.events.Event');
 /**
  * @constructor
  * @param {string} type
- * @param {nextform.models.FormularModel} formular
+ * @param {nextform.models.FormModel} form
  * @param {nextform.models.fields.AbstractFieldModel=} optField
+ * @param {number=} optProgress
  * @extends {goog.events.Event}
  */
-nextform.events.UploadEvent = function(type, formular, optField)
+nextform.events.UploadEvent = function(type, form, optField, optProgress)
 {
     nextform.events.UploadEvent.base(this, 'constructor', type);
 
     /**
      * @public
-     * @type {nextform.models.FormularModel}
+     * @type {nextform.models.FormModel}
      */
-    this.formular = formular;
+    this.form = form;
 
     /**
      * @public
      * @type {nextform.models.fields.AbstractFieldModel}
      */
     this.field = optField || null;
+
+    /**
+     * @public
+     * @type {number}
+     */
+    this.progress = optProgress || 0;
 };
 
 goog.inherits(
@@ -36,7 +43,7 @@ goog.inherits(
  * @enum {string}
  */
 nextform.events.UploadEvent.EventType = {
-    STARTED: 'nextform.event.upload.started',
-    COMPLETED: 'nextform.event.upload.completed',
+    START: 'nextform.event.upload.start',
+    COMPLETE: 'nextform.event.upload.complete',
     PROGRESS: 'nextform.event.upload.progress'
 };

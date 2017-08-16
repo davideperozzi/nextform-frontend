@@ -1,5 +1,8 @@
 goog.provide('nextform.models.fields.AbstractFieldModel');
 
+// goog
+goog.require('goog.structs.Map');
+
 /**
  * @struct
  * @constructor
@@ -29,13 +32,19 @@ nextform.models.fields.AbstractFieldModel = function(name, optElements, optField
 
     /**
      * @public
-     * @type {goog.struct.Map<string, nextform.validators.AbstractValidator>}
+     * @type {goog.structs.Map<string, nextform.validators.AbstractValidator>}
      */
     this.validators = new goog.structs.Map();
 
     /**
      * @public
-     * @type {goog.struct.Map<string, string>}
+     * @type {goog.structs.Map<string, string>}
      */
     this.errors = new goog.structs.Map();
+
+    /**
+     * @public
+     * @type {Element}
+     */
+    this.errorTarget = null;
 };

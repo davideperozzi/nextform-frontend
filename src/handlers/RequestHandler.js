@@ -9,6 +9,7 @@ goog.require('goog.events.EventHandler');
 
 // nextform
 goog.require('nextform.models.ResultModel');
+goog.require('nextform.providers.FormProvider');
 goog.require('nextform.providers.ResponseProvider');
 
 /**
@@ -45,7 +46,7 @@ goog.inherits(
 
 /**
  * @public
- * @param {nextform.providers.FormularProvider} provider
+ * @param {nextform.providers.FormProvider} provider
  * @return {goog.Promise}
  */
 nextform.handlers.RequestHandler.prototype.send = function(provider)

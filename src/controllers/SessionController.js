@@ -8,7 +8,7 @@ goog.require('goog.events.EventHandler');
 
 // nextform
 goog.require('nextform.events.SessionEvent');
-goog.require('nextform.controllers.FormularController');
+goog.require('nextform.controllers.FormController');
 
 /**
  * @constructor
@@ -20,9 +20,9 @@ nextform.controllers.SessionController = function()
 
     /**
      * @private
-     * @type {goog.structs.Map<string, nextform.controllers.FormularController>}
+     * @type {goog.structs.Map<string, nextform.controllers.FormController>}
      */
-    this.formulars_ = new goog.structs.Map();
+    this.forms_ = new goog.structs.Map();
 
     /**
      * @private
@@ -49,18 +49,18 @@ nextform.controllers.SessionController.NAME_COUNTER = 0;
 
 /**
  * @public
- * @param {Element|nextform.controllers.FormularController}
- * @return {nextform.controllers.FormularController}
+ * @param {HTMLFormElement|nextform.controllers.FormController} form
+ * @return {nextform.controllers.FormController}
  */
-nextform.controllers.SessionController.prototype.addFormular = function(form)
+nextform.controllers.SessionController.prototype.addForm = function(form)
 {
     var controller;
 
-    if (form instanceof nextform.controllers.FormularController) {
+    if (form instanceof nextform.controllers.FormController) {
         controller = form;
     }
     else if (goog.dom.isElement(form)) {
-        controller = new nextform.controllers.FormularController();
+        controller = new nextform.controllers.FormController();
         controller.init(form);
     }
 
@@ -70,18 +70,21 @@ nextform.controllers.SessionController.prototype.addFormular = function(form)
 
     var name = controller.getName();
 
-    if (goog.string.isEmpty(name)) {
+    if (goog.string.isEmptyOrWhitespace(name)) {
         name = this.getNextName_();
     }
 
-    if (this.formulars_.containsKey(name)) {
-        throw new Error('A Formular with name "' +  name + '" already exists');
+    if (this.forms_.containsKey(name)) {
+        throw new Error('A Form with name "' +  name + '" already exists');
     }
 
-    this.eventHandler_.listen(controller, nextform.events.FormularEvent.EventType.SUBMIT,
-        this.handleFormSubmit_);
+    this.eventHandler_.listen(controller, nextform.events.FormEvent.EventType.REQUEST,
+        this.handleFormRequest_);
 
-    this.formulars_.set(name, controller);
+    this.eventHandler_.listen(controller, nextform.events.FormEvent.EventType.RESULT,
+        this.handleFormResult_);
+
+    this.forms_.set(name, controller);
 
     return controller;
 };
@@ -97,17 +100,37 @@ nextform.controllers.SessionController.prototype.getNextName_ = function()
 
 /**
  * @private
- * @param {nextform.events.FormularEvent} event
+ * @param {nextform.events.FormEvent} event
  */
-nextform.controllers.SessionController.prototype.handleFormSubmit_ = function(event)
+nextform.controllers.SessionController.prototype.handleFormRequest_ = function(event)
 {
-    var controller = /** @type {nextform.controllers.FormularController} */ (event.target);
+    var formController = /** @type {nextform.controllers.FormController} */ (event.target);
 
-    controller.send().then(function(result){
-        if (result.session && result.valid) {
-            this.dispatchEvent(new nextform.events.SessionEvent(
-                nextform.events.SessionEvent.EventType.COMPLETED
-            ));
-        }
-    }, null, this);
+    this.dispatchEvent(new nextform.events.SessionEvent(
+        nextform.events.SessionEvent.EventType.FORM_REQUEST,
+        formController
+    ));
+};
+
+/**
+ * @private
+ * @param {nextform.events.FormEvent} event
+ */
+nextform.controllers.SessionController.prototype.handleFormResult_ = function(event)
+{
+    var formController = /** @type {nextform.controllers.FormController} */ (event.target);
+
+    this.dispatchEvent(new nextform.events.SessionEvent(
+        nextform.events.SessionEvent.EventType.FORM_RESULT,
+        formController,
+        event.result
+    ));
+
+    if (event.result && event.result.session && event.result.valid) {
+        this.dispatchEvent(new nextform.events.SessionEvent(
+            nextform.events.SessionEvent.EventType.COMPLETE,
+            formController,
+            event.result
+        ));
+    }
 };

@@ -2,6 +2,7 @@ goog.provide('nextform.factories.ValidatorFactory');
 
 // goog
 goog.require('goog.array');
+goog.require('goog.structs.Map');
 
 // dj
 goog.require('dj.ext.dom.attributes');
@@ -10,6 +11,9 @@ goog.require('dj.ext.dom.attributes');
 goog.require('nextform.validators.AbstractValidator');
 goog.require('nextform.validators.RequiredValidator');
 goog.require('nextform.validators.FiletypeValidator');
+goog.require('nextform.validators.ZipcodeValidator');
+goog.require('nextform.validators.MaxlengthValidator');
+goog.require('nextform.validators.MinlengthValidator');
 
 /**
  * @constructor
@@ -18,10 +22,13 @@ nextform.factories.ValidatorFactory = function()
 {
     /**
      * @private
-     * @type {goog.structs.Map<string, >}
+     * @type {goog.structs.Map<string, Function>}
      */
     this.ctors_ = new goog.structs.Map({
         'required': nextform.validators.RequiredValidator,
+        'zipcode': nextform.validators.ZipcodeValidator,
+        'maxlength': nextform.validators.MaxlengthValidator,
+        'minlength': nextform.validators.MinlengthValidator,
         'filetype': nextform.validators.FiletypeValidator
     });
 };
@@ -61,7 +68,7 @@ nextform.factories.ValidatorFactory.prototype.createValidators = function(field)
  * @private
  * @param {nextform.models.fields.AbstractFieldModel} field
  * @param {Element} element
- * @return {goog.struct.Map<string, nextform.validators.AbstractValidator>}
+ * @return {goog.structs.Map<string, nextform.validators.AbstractValidator>}
  */
 nextform.factories.ValidatorFactory.prototype.getValidators_ = function(field, element)
 {
@@ -97,7 +104,7 @@ nextform.factories.ValidatorFactory.prototype.getValidators_ = function(field, e
  * @private
  * @param {nextform.models.fields.AbstractFieldModel} field
  * @param {Element} element
- * @return {goog.struct.Map<string, nextform.validators.AbstractValidator>}
+ * @return {goog.structs.Map<string, nextform.validators.AbstractValidator>}
  */
 nextform.factories.ValidatorFactory.prototype.getErrors_ = function(field, element)
 {
@@ -120,6 +127,7 @@ nextform.factories.ValidatorFactory.prototype.getErrors_ = function(field, eleme
 };
 
 /**
+ * @private
  * @param {string} key
  * @return {string}
  */

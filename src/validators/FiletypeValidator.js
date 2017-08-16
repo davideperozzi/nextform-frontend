@@ -26,6 +26,10 @@ nextform.validators.FiletypeValidator.prototype.validate = function(value)
         var allowedExtensions = this.option.split(',');
         var validExtensions = 0;
 
+        value = /** @type {Array<File>} **/ (goog.array.slice(
+            /** @type {IArrayLike} */ (value), 0
+        ));
+
         goog.array.forEach(value, function(file){
             var foundExtensions = 0;
 

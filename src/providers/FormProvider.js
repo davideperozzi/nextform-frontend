@@ -1,19 +1,21 @@
-goog.provide('nextform.providers.FormularProvider');
+goog.provide('nextform.providers.FormProvider');
 
 // goog
-goog.require('goog.structs.Map');
+goog.require('goog.array');
 goog.require('goog.dom.forms');
+goog.require('goog.structs.Map');
+goog.require('goog.dom.InputType');
 
 /**
- * @construct
+ * @constructor
  */
-nextform.providers.FormularProvider = function()
+nextform.providers.FormProvider = function()
 {
     /**
      * @private
-     * @type {nextform.models.FormularModel}
+     * @type {nextform.models.FormModel}
      */
-    this.formular_ = null;
+    this.form_ = null;
 
     /**
      * @private
@@ -26,36 +28,36 @@ nextform.providers.FormularProvider = function()
  * @const
  * @type {string}
  */
-nextform.providers.FormularProvider.SESSION_FIELD_NAME = '_73d39f2e64de879f0876fdaec6c96a16';
+nextform.providers.FormProvider.SESSION_FIELD_NAME = '_73d39f2e64de879f0876fdaec6c96a16';
 
 /**
  * @public
- * @param {nextform.models.FormularModel} formular
+ * @param {nextform.models.FormModel} form
  */
-nextform.providers.FormularProvider.prototype.parse = function(formular)
+nextform.providers.FormProvider.prototype.parse = function(form)
 {
-    this.formular_ = formular;
+    this.form_ = form;
     this.update();
 };
 
 /**
  * @public
- * @return {nextform.models.FormularModel}
+ * @return {nextform.models.FormModel}
  */
-nextform.providers.FormularProvider.prototype.getModel = function()
+nextform.providers.FormProvider.prototype.getModel = function()
 {
-    return this.formular_;
+    return this.form_;
 };
 
 /**
  * @public
  * @return {boolean}
  */
-nextform.providers.FormularProvider.prototype.hasFileField = function()
+nextform.providers.FormProvider.prototype.hasFileField = function()
 {
     var fileFieldFound = false;
 
-    this.formular_.fields.forEach(function(field){
+    this.form_.fields.forEach(function(field){
         if (fileFieldFound) {
             return;
         }
@@ -76,33 +78,37 @@ nextform.providers.FormularProvider.prototype.hasFileField = function()
  * @public
  * @return {boolean}
  */
-nextform.providers.FormularProvider.prototype.hasSessionField = function()
+nextform.providers.FormProvider.prototype.hasSessionField = function()
 {
-    return this.formular_.fields.containsKey(
-        nextform.providers.FormularProvider.SESSION_FIELD_NAME);
+    return this.form_.fields.containsKey(
+        nextform.providers.FormProvider.SESSION_FIELD_NAME);
 };
 
 /**
  * @public
  * @return {string}
  */
-nextform.providers.FormularProvider.prototype.getSessionFieldName = function()
+nextform.providers.FormProvider.prototype.getSessionFieldName = function()
 {
-    return nextform.providers.FormularProvider.SESSION_FIELD_NAME;
+    return nextform.providers.FormProvider.SESSION_FIELD_NAME;
 };
 
 /**
  * @public
  * @return {string}
  */
-nextform.providers.FormularProvider.prototype.getSessionFieldValue = function()
+nextform.providers.FormProvider.prototype.getSessionFieldValue = function()
 {
-    var field = this.formular_.fields.get(
-        nextform.providers.FormularProvider.SESSION_FIELD_NAME);
+    var field = this.form_.fields.get(
+        nextform.providers.FormProvider.SESSION_FIELD_NAME);
 
     if (field) {
         if (field.elements.length == 1) {
-            return this.getFieldValue(field);
+            var value = this.getFieldValue(field);
+
+            if (goog.isString(value)) {
+                return /** @type {string} */ (value);
+            }
         }
     }
 
@@ -113,11 +119,11 @@ nextform.providers.FormularProvider.prototype.getSessionFieldValue = function()
  * @public
  * @return {goog.structs.Map<string, Array<Element>>}
  */
-nextform.providers.FormularProvider.prototype.getFileElements = function()
+nextform.providers.FormProvider.prototype.getFileElements = function()
 {
     var fields = new goog.structs.Map();
 
-    this.formular_.fields.forEach(function(field, name){
+    this.form_.fields.forEach(function(field, name){
         for (var i = 0, len = field.elements.length; i < len; i++) {
             var element = field.elements[i];
 
@@ -139,10 +145,10 @@ nextform.providers.FormularProvider.prototype.getFileElements = function()
  * @public
  * @return {string}
  */
-nextform.providers.FormularProvider.prototype.getName = function()
+nextform.providers.FormProvider.prototype.getName = function()
 {
-    return this.formular_.element.hasAttribute('name')
-            ? this.formular_.element.getAttribute('name')
+    return this.form_.element.hasAttribute('name')
+            ? this.form_.element.getAttribute('name')
             : '';
 };
 
@@ -151,7 +157,7 @@ nextform.providers.FormularProvider.prototype.getName = function()
  * @param {Element} element
  * @return {boolean}
  */
-nextform.providers.FormularProvider.prototype.isFileElement_ = function(element)
+nextform.providers.FormProvider.prototype.isFileElement_ = function(element)
 {
     return element.hasAttribute('type') &&
            element.getAttribute('type') == 'file';
@@ -161,9 +167,9 @@ nextform.providers.FormularProvider.prototype.isFileElement_ = function(element)
  * @param {Element} element
  * @return {nextform.models.fields.AbstractFieldModel}
  */
-nextform.providers.FormularProvider.prototype.getFieldByElement = function(element)
+nextform.providers.FormProvider.prototype.getFieldByElement = function(element)
 {
-    var fields = this.formular_.fields.getValues();
+    var fields = this.form_.fields.getValues();
 
     for (var i = 0, len = fields.length; i < len; i++) {
         if (this.isElementInField_(fields[i], element)) {
@@ -175,10 +181,52 @@ nextform.providers.FormularProvider.prototype.getFieldByElement = function(eleme
 };
 
 /**
+ * @public
+ * @param {nextform.models.fields.AbstractFieldModel=} optField
+ * @return {Array<Element>}
+ */
+nextform.providers.FormProvider.prototype.getFieldElements = function(optField)
+{
+    var elements = [];
+
+    if (optField) {
+        if (optField instanceof nextform.models.fields.AbstractFieldModel) {
+            for(var i = 0, len = optField.fields.length; i < len; i++) {
+                var fieldElements = optField.fields[i].elements;
+
+                for (var i1 = 0, len1 = fieldElements.length; i1 < len1; i1++) {
+                    elements.push(fieldElements[i]);
+                }
+
+                if (optField.fields[i].fields.length > 0) {
+                    elements = goog.array.concat(this.getFieldElements(optField.fields[i]), elements);
+                }
+            }
+        }
+        else {
+            throw new Error('Invalid field given to traverse through elements');
+        }
+    }
+    else {
+        this.form_.fields.forEach(function(field){
+            for (var i = 0, len = field.elements.length; i < len; i++) {
+                elements.push(field.elements[i]);
+            }
+
+            if (field.fields.length > 0) {
+                elements = goog.array.concat(this.getFieldElements(field), elements);
+            }
+        });
+    }
+
+    return elements;
+};
+
+/**
  * @private
  * @return {boolean}
  */
-nextform.providers.FormularProvider.prototype.isElementInField_ = function(field, element)
+nextform.providers.FormProvider.prototype.isElementInField_ = function(field, element)
 {
     for (var i = 0, len = field.elements.length; i < len; i++) {
         if (field.elements[i] == element) {
@@ -202,10 +250,12 @@ nextform.providers.FormularProvider.prototype.isElementInField_ = function(field
  * @param {nextform.models.fields.AbstractFieldModel} field
  * @return {*}
  */
-nextform.providers.FormularProvider.prototype.getFieldValue = function(field)
+nextform.providers.FormProvider.prototype.getFieldValue = function(field)
 {
     if (field instanceof nextform.models.fields.CollectionFieldModel) {
-        return this.getFieldCollectionValue(field);
+        return this.getFieldCollectionValue(
+            /** @type {nextform.models.fields.CollectionFieldModel}*/ (field)
+        );
     }
 
     if (field.elements.length == 1) {
@@ -214,7 +264,7 @@ nextform.providers.FormularProvider.prototype.getFieldValue = function(field)
         switch (element.tagName.toLowerCase()) {
             case 'input':
             case 'textarea':
-                if (element.getAttribute('type') == 'file') {
+                if (element.getAttribute('type') == goog.dom.InputType.FILE) {
                     return element.files;
                 }
 
@@ -231,17 +281,17 @@ nextform.providers.FormularProvider.prototype.getFieldValue = function(field)
 };
 
 /**
- * @param {nextform.models.fields.AbstractFieldModel} field
+ * @param {nextform.models.fields.CollectionFieldModel} field
  * @return {*}
  */
-nextform.providers.FormularProvider.prototype.getFieldCollectionValue = function(field)
+nextform.providers.FormProvider.prototype.getFieldCollectionValue = function(field)
 {
     switch (field.sharedType) {
-        case 'radio':
+        case goog.dom.InputType.RADIO:
             return this.getRadioFieldValue_(field);
             break;
 
-        case 'checkbox':
+        case goog.dom.InputType.CHECKBOX:
             return this.getCheckboxValue_(field, field.name.endsWith('[]'));
             break;
     }
@@ -254,7 +304,7 @@ nextform.providers.FormularProvider.prototype.getFieldCollectionValue = function
  * @param {nextform.models.fields.AbstractFieldModel} parent
  * @return {string}
  */
-nextform.providers.FormularProvider.prototype.getRadioFieldValue_ = function(parent)
+nextform.providers.FormProvider.prototype.getRadioFieldValue_ = function(parent)
 {
     for (var i = 0, len = parent.fields.length; i < len; i++) {
         var field = parent.fields[i];
@@ -277,7 +327,7 @@ nextform.providers.FormularProvider.prototype.getRadioFieldValue_ = function(par
  * @param {boolean} multiple
  * @return {Array<string>|string}
  */
-nextform.providers.FormularProvider.prototype.getCheckboxValue_ = function(parent, multiple)
+nextform.providers.FormProvider.prototype.getCheckboxValue_ = function(parent, multiple)
 {
     var values = [];
 
@@ -304,9 +354,9 @@ nextform.providers.FormularProvider.prototype.getCheckboxValue_ = function(paren
 /**
  * @public
  */
-nextform.providers.FormularProvider.prototype.update = function()
+nextform.providers.FormProvider.prototype.update = function()
 {
-    var formElement = this.formular_.element;
+    var formElement = this.form_.element;
 
     if (formElement.hasAttribute('action')) {
         this.config_.set('action', formElement.getAttribute('action'));
@@ -322,10 +372,10 @@ nextform.providers.FormularProvider.prototype.update = function()
  * @param {string} name
  * @return {string}
  */
-nextform.providers.FormularProvider.prototype.getConfig = function(name)
+nextform.providers.FormProvider.prototype.getConfig = function(name)
 {
     if ( ! this.config_.containsKey(name)) {
-        throw new Error('Config "' + name + '" not found in formular');
+        throw new Error('Config "' + name + '" not found in form');
     }
 
     return this.config_.get(name);
@@ -333,9 +383,9 @@ nextform.providers.FormularProvider.prototype.getConfig = function(name)
 
 /**
  * @public
- * @return {goog.structs.Map<string, *>}
+ * @return {string}
  */
-nextform.providers.FormularProvider.prototype.getData = function()
+nextform.providers.FormProvider.prototype.getData = function()
 {
-    return goog.dom.forms.getFormDataString(this.formular_.element);
+    return goog.dom.forms.getFormDataString(this.form_.element);
 };

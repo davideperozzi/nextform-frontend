@@ -7,6 +7,7 @@ goog.require('goog.Promise');
 goog.require('goog.ui.Popup');
 goog.require('goog.math.Size');
 goog.require('goog.async.nextTick');
+goog.require('goog.positioning.Corner');
 
 /**
  * @constructor
@@ -115,7 +116,7 @@ nextform.ui.TooltipElement.prototype.setSize = function(width, optHeight)
 
 /**
  * @public
- * @param {goog.positioning.AbstractPosition}
+ * @param {goog.positioning.AbstractPosition} position
  */
 nextform.ui.TooltipElement.prototype.setPosition = function(position)
 {
@@ -171,7 +172,8 @@ nextform.ui.TooltipElement.prototype.getElement = function()
 nextform.ui.TooltipElement.prototype.reposition_ = function()
 {
     if (this.position_) {
-        this.position_.reposition(this.tooltipElement_);
+        this.position_.reposition(this.tooltipElement_,
+            this.position_.corner || goog.positioning.Corner.BOTTOM_START);
     }
 };
 

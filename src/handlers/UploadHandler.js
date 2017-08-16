@@ -7,6 +7,7 @@ goog.require('goog.events.EventHandler');
 goog.require('nextform.events.UploadEvent');
 
 // nextform
+goog.require('nextform.providers.FormProvider');
 goog.require('nextform.providers.ResponseProvider');
 
 /**
@@ -42,7 +43,7 @@ goog.inherits(
 );
 
 /**
- * @constr
+ * @const
  * @type {string}
  */
 nextform.handlers.UploadHandler.FILE_TRIGGER_NAME = '_d1b0162a7d9ae09d7898a36161227c9c';
@@ -63,7 +64,7 @@ nextform.handlers.UploadHandler.prototype.isSupported_ = function()
 
 /**
  * @public
- * @param {nextform.providers.FormularProvider} provider
+ * @param {nextform.providers.FormProvider} provider
  * @return {goog.Promise}
  */
 nextform.handlers.UploadHandler.prototype.upload = function(provider)
@@ -73,16 +74,13 @@ nextform.handlers.UploadHandler.prototype.upload = function(provider)
     }
 
     if (this.xhrIo_.isActive()) {
-        return;
+        return goog.Promise.reject();
     }
 
     this.uploadResolver_ = goog.Promise.withResolver();
 
     // Reset previous
-    this.eventHandler_.unlisten(this.xhrIo_, goog.net.EventType.UPLOAD_PROGRESS,
-        this.handleUploadProgress_);
-    this.eventHandler_.unlisten(this.xhrIo_, goog.net.EventType.SUCCESS,
-        this.handleUploadSuccess_);
+    this.eventHandler_.removeAll();
 
     // Set active
     this.xhrIo_.setProgressEventsEnabled(true);
@@ -97,7 +95,9 @@ nextform.handlers.UploadHandler.prototype.upload = function(provider)
 
         fileElements.forEach(function(elements, name){
             for (var i = 0, len = elements.length; i < len; i++) {
-                formData.append(name, elements[i].files[0]);
+                for (var x in elements[i].files) {
+                    formData.append(name, elements[i].files[x]);
+                }
             }
         });
 
@@ -110,6 +110,11 @@ nextform.handlers.UploadHandler.prototype.upload = function(provider)
             );
         }
     }
+
+    this.dispatchEvent(new nextform.events.UploadEvent(
+        nextform.events.UploadEvent.EventType.START,
+        provider.getModel()
+    ));
 
     var actionUri = new goog.Uri(provider.getConfig('action'));
 
@@ -124,21 +129,22 @@ nextform.handlers.UploadHandler.prototype.upload = function(provider)
 
 /**
  * @private
- * @param {nextform.providers.FormularProvider} provider
+ * @param {nextform.providers.FormProvider} provider
  * @param {goog.events.Event} event
  */
 nextform.handlers.UploadHandler.prototype.handleUploadProgress_ = function(provider, event)
 {
     this.dispatchEvent(new nextform.events.UploadEvent(
         nextform.events.UploadEvent.EventType.PROGRESS,
-        event.loaded / event.total,
-        provider.getModel()
+        provider.getModel(),
+        null,
+        this.getEventProgress_(event)
     ));
 };
 
 /**
  * @private
- * @param {nextform.providers.FormularProvider} provider
+ * @param {nextform.providers.FormProvider} provider
  * @param {goog.events.Event} event
  */
 nextform.handlers.UploadHandler.prototype.handleUploadSuccess_ = function(provider, event)
@@ -149,12 +155,27 @@ nextform.handlers.UploadHandler.prototype.handleUploadSuccess_ = function(provid
         response.parse(event.target.getResponseJson());
 
         this.dispatchEvent(new nextform.events.UploadEvent(
-            nextform.events.UploadEvent.EventType.COMPLETED,
-            event.loaded / event.total,
-            provider.getModel()
+            nextform.events.UploadEvent.EventType.COMPLETE,
+            provider.getModel(),
+            null,
+            this.getEventProgress_(event)
         ));
 
         this.uploadResolver_.resolve(response);
         this.uploadResolver_ = null;
     }
+};
+
+/**
+ * @private
+ * @param {goog.events.Event} event
+ * @return {number}
+ */
+nextform.handlers.UploadHandler.prototype.getEventProgress_ = function(event)
+{
+    if (event.hasOwnProperty('loaded') && event.hasOwnProperty('total')) {
+        return event['loaded'] / event['total'];
+    }
+
+    return 0;
 };
