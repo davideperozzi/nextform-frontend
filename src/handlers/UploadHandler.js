@@ -90,14 +90,14 @@ nextform.handlers.UploadHandler.prototype.upload = function(provider)
         this.handleUploadSuccess_.bind(this, provider));
 
     if (provider.hasFileField()) {
-        var fileElements = provider.getFileElements();
+        var fileFields = provider.getFileFields();
         var formData = new FormData();
 
-        fileElements.forEach(function(elements, name){
-            for (var i = 0, len = elements.length; i < len; i++) {
-                for (var x in elements[i].files) {
-                    formData.append(name, elements[i].files[x]);
-                }
+        fileFields.forEach(function(field, name){
+            var files = provider.getFieldValue(field);
+
+            for (var i = 0, len = files.length; i < len; i++) {
+                formData.append(name, files[i]);
             }
         });
 

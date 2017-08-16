@@ -9,6 +9,9 @@ goog.require('goog.dom.dataset');
 goog.require('goog.events.EventHandler');
 goog.require('goog.events.EventTarget');
 
+// dj
+goog.require('dj.sys.managers.ComponentManager');
+
 // nextform
 goog.require('nextform.models.FormModel');
 goog.require('nextform.models.ConfigModel');
@@ -21,6 +24,8 @@ goog.require('nextform.providers.FormProvider');
 goog.require('nextform.models.fields.AbstractFieldModel');
 goog.require('nextform.models.fields.CollectionFieldModel');
 goog.require('nextform.handlers.error.TooltipErrorHandler');
+goog.require('nextform.components.FileInputComponent');
+goog.require('nextform.components.FilePreviewComponent');
 
 /**
  * @constructor
@@ -47,6 +52,12 @@ nextform.controllers.FormController = function()
      * @type {nextform.models.ConfigModel}
      */
     this.config_ = new nextform.models.ConfigModel();
+
+    /**
+     * @private
+     * @type {dj.sys.managers.ComponentManager}
+     */
+    this.componentManager_ = new dj.sys.managers.ComponentManager();
 
     /**
      * @private
@@ -101,6 +112,7 @@ goog.inherits(
 /**
  * @public
  * @param {HTMLFormElement} element
+ * @return {goog.Promise}
  */
 nextform.controllers.FormController.prototype.init = function(element)
 {
@@ -108,12 +120,19 @@ nextform.controllers.FormController.prototype.init = function(element)
         throw new Error('Invalid form given');
     }
 
+    // Setup component manager
+    this.componentManager_.setRootElement(element);
+    this.componentManager_.setAttributeSlug('nextform');
+    this.componentManager_.add('q(input[type="file"])', nextform.components.FileInputComponent);
+    this.componentManager_.add('file-preview', nextform.components.FilePreviewComponent);
+
     // Create form
     this.form_ = new nextform.models.FormModel(/** @type {HTMLFormElement} */ (element));
     this.form_.fields.addAll(this.createFields_());
 
     // Parse form to provider
     this.formProvider_.parse(this.form_);
+    this.formProvider_.setManager(this.componentManager_);
 
     // Init error handlers
     for (var i = 0, len = this.errorHandlers_.length; i < len; i++) {
@@ -136,12 +155,24 @@ nextform.controllers.FormController.prototype.init = function(element)
         nextform.events.UploadEvent.EventType.COMPLETE
     ], this.dispatchEvent);
 
-    // Attach upload listeners if upload method matches
-    if (this.formProvider_.hasFileField()) {
-        this.addUploadChangeListeners_(
-            this.formProvider_.getFileElements()
-        );
-    }
+    // Init component manager. Set the listeners of the own controller after the controller
+    // initalized and is ready. This ensures the listeners set by the components has a
+    // higher priority than the own onws. This will be useful if for example the file field
+    // needs data on change but the file input will be cleared by the controller on change too
+    // so the component won't receive the event on time the all the data is gone if the result
+    // is not valid
+    return new goog.Promise(function(resolve, reject){
+        this.componentManager_.init().then(function(){
+            // Attach upload listeners if upload method matches
+            if (this.formProvider_.hasFileField()) {
+                this.addUploadChangeListeners_(
+                    this.formProvider_.getFileElements()
+                );
+            }
+
+            resolve();
+        }, reject, this);
+    }, this);
 };
 
 /**
@@ -383,7 +414,7 @@ nextform.controllers.FormController.prototype.handleUploadElementChange_ = funct
 
     if ( ! result.valid) {
         for (var i = 0, len = field.elements.length; i < len; i++) {
-            field.elements[i].value = '';
+            field.elements[i].value = null;
         }
     }
 

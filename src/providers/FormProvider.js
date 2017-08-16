@@ -22,6 +22,12 @@ nextform.providers.FormProvider = function()
      * @type {goog.structs.Map<string, string>}
      */
     this.config_ = new goog.structs.Map();
+
+    /**
+     * @private
+     * @type {dj.sys.managers.ComponentManager}
+     */
+    this.componentManager_ = null;
 };
 
 /**
@@ -29,6 +35,15 @@ nextform.providers.FormProvider = function()
  * @type {string}
  */
 nextform.providers.FormProvider.SESSION_FIELD_NAME = '_73d39f2e64de879f0876fdaec6c96a16';
+
+/**
+ * @public
+ * @param {dj.sys.managers.ComponentManager} manager
+ */
+nextform.providers.FormProvider.prototype.setManager = function(manager)
+{
+    this.componentManager_ = manager;
+};
 
 /**
  * @public
@@ -117,28 +132,67 @@ nextform.providers.FormProvider.prototype.getSessionFieldValue = function()
 
 /**
  * @public
+ * @param {nextform.models.fields.AbstractFieldModel=} optParent
+ * @param {boolean=} optRecursive
  * @return {goog.structs.Map<string, Array<Element>>}
  */
-nextform.providers.FormProvider.prototype.getFileElements = function()
+nextform.providers.FormProvider.prototype.getFileElements = function(optParent, optRecursive)
 {
-    var fields = new goog.structs.Map();
+    var fields = this.getFileFields(optParent, optRecursive);
+    var elements = new goog.structs.Map();
 
-    this.form_.fields.forEach(function(field, name){
-        for (var i = 0, len = field.elements.length; i < len; i++) {
-            var element = field.elements[i];
-
-            if (this.isFileElement_(element)) {
-                if (fields.containsKey(name)) {
-                    fields.get(name).push(element);
-                }
-                else {
-                    fields.set(name, [element]);
-                }
-            }
-        }
+    fields.forEach(function(field, name){
+        elements.set(name, field.elements);
     }, this);
 
-    return fields;
+    return elements;
+};
+
+/**
+ * @public
+ * @param {nextform.models.fields.AbstractFieldModel=} optParent
+ * @param {boolean=} optRecursive
+ * @return {goog.structs.Map<string, nextform.models.fields.AbstractFieldModel>}
+ */
+nextform.providers.FormProvider.prototype.getFileFields = function(optParent, optRecursive)
+{
+    var foundFields = new goog.structs.Map();
+    var searchFields = optParent ? optParent.fields : this.form_.fields.getValues();
+
+    for (var i = 0, len = searchFields.length; i < len; i++) {
+        var currentField = searchFields[i];
+        var types = goog.array.map(currentField.elements, this.getType_, this);
+
+        goog.array.removeDuplicates(types);
+
+        if (types.length == 1 && types[0] == goog.dom.InputType.FILE) {
+            foundFields.set(currentField.name, currentField);
+        }
+
+        if (optRecursive && currentField.fields.length > 0) {
+            foundFields.addAll(this.getFileFields(currentField, optRecursive));
+        }
+    }
+
+    return foundFields;
+};
+
+/**
+ * @private
+ * @param {Element} element
+ * @return {nextform.components.AbastractFieldComponent}
+ */
+nextform.providers.FormProvider.prototype.getComponent_ = function(element)
+{
+    if (this.componentManager_) {
+        var component = this.componentManager_.getComponentByElement(element);
+
+        if (component && component instanceof nextform.components.AbastractFieldComponent) {
+            return /** @type {nextform.components.AbastractFieldComponent} */ (component);
+        }
+    }
+
+    return null;
 };
 
 /**
@@ -159,8 +213,21 @@ nextform.providers.FormProvider.prototype.getName = function()
  */
 nextform.providers.FormProvider.prototype.isFileElement_ = function(element)
 {
-    return element.hasAttribute('type') &&
-           element.getAttribute('type') == 'file';
+    return this.getType_(element) == 'file';
+};
+
+/**
+ * @private
+ * @param {Element} element
+ * @return {string}
+ */
+nextform.providers.FormProvider.prototype.getType_ = function(element)
+{
+    if (element.hasAttribute('type')) {
+        return element.getAttribute('type').toLowerCase();
+    }
+
+    return '';
 };
 
 /**
@@ -260,20 +327,26 @@ nextform.providers.FormProvider.prototype.getFieldValue = function(field)
 
     if (field.elements.length == 1) {
         var element = field.elements[0];
+        var component = this.getComponent_(element);
 
-        switch (element.tagName.toLowerCase()) {
-            case 'input':
-            case 'textarea':
-                if (element.getAttribute('type') == goog.dom.InputType.FILE) {
-                    return element.files;
-                }
+        if (component) {
+            return component.getValue();
+        }
+        else {
+            switch (element.tagName.toLowerCase()) {
+                case 'input':
+                case 'textarea':
+                    if (this.getType_(element) == goog.dom.InputType.FILE) {
+                        return element.files;
+                    }
 
-                return element.value;
-                break;
+                    return element.value;
+                    break;
 
-            case 'select':
-                return element.options[element.selectedIndex].value;
-                break;
+                case 'select':
+                    return element.options[element.selectedIndex].value;
+                    break;
+            }
         }
     }
 
