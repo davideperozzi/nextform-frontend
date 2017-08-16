@@ -172,8 +172,7 @@ nextform.ui.TooltipElement.prototype.getElement = function()
 nextform.ui.TooltipElement.prototype.reposition_ = function()
 {
     if (this.position_) {
-        this.position_.reposition(this.tooltipElement_,
-            this.position_.corner || goog.positioning.Corner.BOTTOM_START);
+        this.position_.reposition(this.tooltipElement_, goog.positioning.Corner.TOP_LEFT);
     }
 };
 
