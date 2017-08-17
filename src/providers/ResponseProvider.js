@@ -26,8 +26,8 @@ nextform.providers.ResponseProvider.prototype.parse = function(data)
         throw new Error('Response data to parse is invalid');
     }
 
-    this.result_.session = !!data['session'];
-    this.result_.valid = !!data['valid'];
+    this.result_.session = this.result_.session && !!data['session'];
+    this.result_.valid = this.result_.valid && !!data['valid'];
 
     if (goog.isObject(data['errors'])) {
         for (var name in data['errors']) {
@@ -58,4 +58,43 @@ nextform.providers.ResponseProvider.prototype.parse = function(data)
 nextform.providers.ResponseProvider.prototype.getResult = function()
 {
     return this.result_;
+};
+
+/**
+ * @public
+ * @param {string} message
+ * @param {number=} optCode
+ */
+nextform.providers.ResponseProvider.prototype.setError = function(message, optCode)
+{
+    var code = optCode || nextform.models.ResultModel.ErrorCode.CUSTOM_ERROR;
+
+    if ( ! optCode) {
+        switch (message) {
+            case nextform.models.ResultModel.ErrorMessage.INVALID_RESPONSE:
+                code = nextform.models.ResultModel.ErrorCode.INVALID_RESPONSE;
+                break;
+        }
+    }
+
+    this.result_.valid = false;
+    this.result_.session = false;
+    this.result_.errorCode = code;
+    this.result_.errorMessage = message;
+};
+
+/**
+ * @public
+ * @param {boolean} valid
+ * @param {boolean} session
+ * @param {Object=} optErrors
+ * @return {Object}
+ */
+nextform.providers.ResponseProvider.createRaw = function(valid, session, optErrors)
+{
+    return {
+        'valid': valid,
+        'session': session,
+        'errors': optErrors || {}
+    };
 };

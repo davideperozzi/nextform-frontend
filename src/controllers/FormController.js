@@ -152,6 +152,7 @@ nextform.controllers.FormController.prototype.init = function(element)
     this.eventHandler_.listen(this.uploadHandler_, [
         nextform.events.UploadEvent.EventType.START,
         nextform.events.UploadEvent.EventType.PROGRESS,
+        nextform.events.UploadEvent.EventType.SUCCESS,
         nextform.events.UploadEvent.EventType.COMPLETE
     ], this.dispatchEvent);
 
@@ -196,13 +197,13 @@ nextform.controllers.FormController.prototype.hideErrors = function()
 
 /**
  * @public
+ * @param {boolean=} optForceValidation
  * @return {goog.Promise}
  */
-nextform.controllers.FormController.prototype.submit = function()
+nextform.controllers.FormController.prototype.submit = function(optForceValidation)
 {
-    return this.submitForm_();
+    return this.submitForm_(optForceValidation);
 };
-
 
 /**
  * @public
@@ -232,13 +233,14 @@ nextform.controllers.FormController.prototype.getElements = function()
 
 /**
  * @private
+ * @param {boolan=} optForceValidation
  * @return {goog.Promise}
  */
-nextform.controllers.FormController.prototype.send_ = function()
+nextform.controllers.FormController.prototype.send_ = function(optForceValidation)
 {
     return new goog.Promise(function(resolve, reject){
         if (this.sending_) {
-            reject(this.sending_)
+            reject(this.sending_);
             return;
         }
 
@@ -251,38 +253,88 @@ nextform.controllers.FormController.prototype.send_ = function()
         var result = this.validate_();
 
         if (result.valid) {
-            this.dispatchEvent(new nextform.events.FormEvent(
-                nextform.events.FormEvent.EventType.REQUEST
-            ));
+            var lastResult = this.requestHandler_.getLastResult();
+            var needsRequest = optForceValidation || this.formProvider_.hasChanged();
 
-            this.requestHandler_.send(this.formProvider_).then(function(response){
-                result = response.getResult();
+            if (needsRequest || ! lastResult || (lastResult && ! lastResult.valid)) {
+                this.dispatchEvent(new nextform.events.FormEvent(
+                    nextform.events.FormEvent.EventType.REQUEST
+                ));
 
-                if (result.valid &&
-                    this.formProvider_.hasFileField() &&
-                    (this.config_.uploadMethod == nextform.models.ConfigModel.UploadMethod.ON_SUBMIT)) {
-                    this.uploadHandler_.upload(this.formProvider_).then(function(uploadResponse){
-                        this.handleResult_(uploadResponse.getResult());
+                this.requestHandler_.send(this.formProvider_).then(function(response){
+                    result = response.getResult();
+
+                    if (result.valid && this.formProvider_.hasFileField()) {
+                        this.upload_().then(
+                            function(result){
+                                this.handleResult_(result);
+                                this.sending_ = false;
+
+                                if (result.valid) {
+                                    this.formProvider_.setChanged(false);
+                                }
+
+                                resolve(result);
+                            },
+                            function(){
+                                this.sending_ = false;
+
+                                reject(this.sending_)
+                            },
+                            this
+                        );
+                    }
+                    else {
+                        this.handleResult_(result);
                         this.sending_ = false;
+
+                        if (result.valid) {
+                            this.formProvider_.setChanged(false);
+                        }
+
                         resolve(result);
-                    }, function(){
-                        this.sending_ = false;
-                    }, this);
-                }
-                else {
-                    this.handleResult_(result);
+                    }
+                }, function(){
                     this.sending_ = false;
-                    resolve(result);
-                }
-            }, function(){
+
+                    reject(this.sending_);
+                }, this);
+            }
+            else {
+                this.handleResult_(result);
                 this.sending_ = false;
-            }, this);
+
+                if (result.valid) {
+                    this.formProvider_.setChanged(false);
+                }
+
+                resolve(result);
+            }
         }
         else {
             this.handleResult_(result);
             this.sending_ = false;
+
+            if (result.valid) {
+                this.formProvider_.setChanged(false);
+            }
+
             resolve(result);
         }
+    }, this);
+};
+
+/**
+ * @private
+ * @return {goog.Promise}
+ */
+nextform.controllers.FormController.prototype.upload_ = function()
+{
+    return new goog.Promise(function(resolve, reject){
+        this.uploadHandler_.upload(this.formProvider_).then(
+            function(response){
+                resolve(response.getResult());
+            }, reject, this);
     }, this);
 };
 
@@ -347,24 +399,44 @@ nextform.controllers.FormController.prototype.handleResult_ = function(result)
         result
     ));
 
-    if ( ! result.valid) {
-        for (var i = 0, len = this.errorHandlers_.length; i < len; i++) {
-            this.errorHandlers_[i].execute(result.errors);
+    if (result.errorCode == nextform.models.ResultModel.ErrorCode.NO_ERROR) {
+        if ( ! result.valid) {
+            for (var i = 0, len = this.errorHandlers_.length; i < len; i++) {
+                this.errorHandlers_[i].execute(result.errors);
+            }
         }
+    }
+    else {
+        this.handleGeneralError_(result);
     }
 };
 
 /**
  * @private
+ * @param {nextform.models.ResultModel} results
+ */
+nextform.controllers.FormController.prototype.handleGeneralError_ = function(result)
+{
+    // @todo: Let the user customize this handling.
+    // Maybe "CustomErrorHandler"?
+
+    if (result.errorCode != nextform.models.ResultModel.ErrorCode.NO_ERROR) {
+        alert(result.errorMessage);
+    }
+};
+
+/**
+ * @private
+ * @param {boolean=} optForceValidation
  * @return {goog.Promise}
  */
-nextform.controllers.FormController.prototype.submitForm_ = function()
+nextform.controllers.FormController.prototype.submitForm_ = function(optForceValidation)
 {
     this.dispatchEvent(new nextform.events.FormEvent(
         nextform.events.FormEvent.EventType.SUBMIT
     ));
 
-    return this.send_();
+    return this.send_(optForceValidation);
 };
 
 /**
@@ -402,6 +474,11 @@ nextform.controllers.FormController.prototype.handleUploadElementChange_ = funct
     var field = this.formProvider_.getFieldByElement(
         /** @type {Element} **/ (event.currentTarget)
     );
+
+    // @todo implement upload on change
+    if (this.config_.uploadMethod == nextform.models.ConfigModel.UploadMethod.ON_CHANGE) {
+        console.warn('Upload on change is not supported at the moment');
+    }
 
     var result = new nextform.models.ResultModel();
     var errors = this.validateField_(field);

@@ -47,4 +47,16 @@ nextform.models.fields.AbstractFieldModel = function(name, optElements, optField
      * @type {Element}
      */
     this.errorTarget = null;
+
+    /**
+     * @public
+     * @type {string}
+     */
+    this.currentValueHash = '';
+
+    /**
+     * @public
+     * @type {string}
+     */
+    this.lastValueHash = '';
 };

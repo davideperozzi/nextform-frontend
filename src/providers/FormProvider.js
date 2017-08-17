@@ -2,9 +2,13 @@ goog.provide('nextform.providers.FormProvider');
 
 // goog
 goog.require('goog.array');
+goog.require('goog.crypt.Md5');
 goog.require('goog.dom.forms');
 goog.require('goog.structs.Map');
 goog.require('goog.dom.InputType');
+
+// nextform
+goog.require('nextform.helpers.files');
 
 /**
  * @constructor
@@ -22,6 +26,12 @@ nextform.providers.FormProvider = function()
      * @type {goog.structs.Map<string, string>}
      */
     this.config_ = new goog.structs.Map();
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    this.changed_ = false;
 
     /**
      * @private
@@ -52,6 +62,7 @@ nextform.providers.FormProvider.prototype.setManager = function(manager)
 nextform.providers.FormProvider.prototype.parse = function(form)
 {
     this.form_ = form;
+
     this.update();
 };
 
@@ -62,6 +73,26 @@ nextform.providers.FormProvider.prototype.parse = function(form)
 nextform.providers.FormProvider.prototype.getModel = function()
 {
     return this.form_;
+};
+
+/**
+ * @public
+ * @return {boolean}
+ */
+nextform.providers.FormProvider.prototype.hasChanged = function()
+{
+    this.setValueHashes_();
+
+    return this.valueHashesChanged_();
+};
+
+/**
+ * @public
+ * @param {boolean} changed
+ */
+nextform.providers.FormProvider.prototype.setChanged = function(changed)
+{
+    this.changed_ = changed;
 };
 
 /**
@@ -87,6 +118,63 @@ nextform.providers.FormProvider.prototype.hasFileField = function()
     }, this);
 
     return fileFieldFound;
+};
+
+/**
+ * @private
+ * @return {boolean}
+ */
+nextform.providers.FormProvider.prototype.valueHashesChanged_ = function()
+{
+    var changed = false;
+
+    this.form_.fields.forEach(function(field, name){
+        if (field.currentHash != field.lastHash) {
+            changed = true;
+        }
+    });
+
+    return changed;
+};
+
+/**
+ * @private
+ */
+nextform.providers.FormProvider.prototype.setValueHashes_ = function()
+{
+    this.form_.fields.forEach(function(field, name){
+        field.lastHash = field.currentHash;
+        field.currentHash = this.getValueHash_(field);
+    }, this);
+};
+
+/**
+ * @private
+ * @param {nextform.models.fields.AbstractFieldModel} field
+ * @return {string}
+ */
+nextform.providers.FormProvider.prototype.getValueHash_ = function(field)
+{
+    var md5 = new goog.crypt.Md5();
+    var value = this.getFieldValue(field);
+
+    md5.update(field.name);
+
+    if (goog.isArray(value)) {
+        goog.array.forEach(value, function(val){
+            if (val instanceof File) {
+                md5.update(nextform.helpers.files.signature(val));
+            }
+            else if (goog.isString(val)) {
+                md5.update(val);
+            }
+        })
+    }
+    else if (goog.isString(value)) {
+        md5.update(value);
+    }
+
+    return goog.crypt.byteArrayToHex(md5.digest())
 };
 
 /**
@@ -340,11 +428,21 @@ nextform.providers.FormProvider.prototype.getFieldValue = function(field)
                         return element.files;
                     }
 
+                    if (this.getType_(element) == goog.dom.InputType.CHECKBOX) {
+                        return element.checked ? element.value : '';
+                    }
+
                     return element.value;
                     break;
 
                 case 'select':
-                    return element.options[element.selectedIndex].value;
+                    if (element.hasAttribute('multiple')) {
+                        // @todo add multiple selection return
+                        console.warn('Multiple selection not supported');
+                    }
+                    else {
+                        return element.options[element.selectedIndex].value;
+                    }
                     break;
             }
         }
@@ -438,6 +536,8 @@ nextform.providers.FormProvider.prototype.update = function()
     if (formElement.hasAttribute('method')) {
         this.config_.set('method', formElement.getAttribute('method'));
     }
+
+    this.setValueHashes_();
 };
 
 /**

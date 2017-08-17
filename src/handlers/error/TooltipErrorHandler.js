@@ -5,6 +5,7 @@ goog.require('goog.events.EventHandler');
 
 // dj
 goog.require('dj.ext.providers.ResizeProvider');
+goog.require('dj.ext.providers.ScrollProvider');
 
 // nextform
 goog.require('nextform.providers.TooltipProvider');
@@ -20,6 +21,8 @@ nextform.handlers.error.TooltipErrorHandler = function()
     nextform.handlers.error.TooltipErrorHandler.base(this, 'constructor', {
         'showAll': false,
         'autoHide': true,
+        'hideOnScroll': true,
+        'hideOnResize': false,
         'autoHideMs': 5000,
         'hideOnClick': true,
         'hideOnInteraction': true
@@ -45,9 +48,27 @@ nextform.handlers.error.TooltipErrorHandler = function()
 
     /**
      * @private
+     * @type {dj.ext.providers.ScrollProvider}
+     */
+    this.scrollProvider_ = dj.ext.providers.ScrollProvider.getInstance();
+
+    /**
+     * @private
      * @type {number}
      */
     this.hideTimeout_ = -1;
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    this.hideOnScroll_ = false;
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    this.hideOnResize_ = false;
 };
 
 goog.inherits(
@@ -62,9 +83,16 @@ nextform.handlers.error.TooltipErrorHandler.prototype.init = function()
 
     this.tooltip_.init(/** @type {Element} */ (document.documentElement));
     this.resizeProvider_.init();
+    this.scrollProvider_.init();
+
+    this.hideOnScroll_ = !!this.config.get('hideOnScroll');
+    this.hideOnResize_ = !!this.config.get('hideOnResize');
 
     goog.events.listen(this.resizeProvider_, dj.ext.providers.ResizeProvider.EventType.RESIZE,
         this.handleResize_, false, this);
+
+    goog.events.listen(this.scrollProvider_, dj.ext.providers.ScrollProvider.EventType.SCROLL,
+        this.handleScroll_, false, this);
 };
 
 /** @inheritDoc */
@@ -146,5 +174,23 @@ nextform.handlers.error.TooltipErrorHandler.prototype.hide = function()
  */
 nextform.handlers.error.TooltipErrorHandler.prototype.handleResize_ = function()
 {
-    this.tooltip_.update();
+    if (this.hideOnScroll_) {
+        this.tooltip_.hide();
+    }
+    else {
+        this.tooltip_.update();
+    }
+};
+
+/**
+ * @private
+ */
+nextform.handlers.error.TooltipErrorHandler.prototype.handleScroll_ = function()
+{
+    if (this.hideOnScroll_) {
+        this.tooltip_.hide();
+    }
+    else {
+        this.tooltip_.update();
+    }
 };

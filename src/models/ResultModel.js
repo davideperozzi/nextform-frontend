@@ -26,4 +26,34 @@ nextform.models.ResultModel = function()
      * @type {goog.structs.Map<string, Array<nextform.models.result.ErrorModel>>}
      */
     this.errors = new goog.structs.Map();
+
+    /**
+     * @public
+     * @type {number}
+     */
+    this.errorCode = nextform.models.ResultModel.ErrorCode.NO_ERROR;
+
+    /**
+     * @public
+     * @type {string}
+     */
+    this.errorMessage = '';
+};
+
+/**
+ * @enum {string}
+ */
+nextform.models.ResultModel.ErrorCode = {
+    NO_ERROR: 0,
+    UNKNOWN: 1,
+    CUSTOM_ERROR: 2,
+    INVALID_RESPONSE: 3
+};
+
+/**
+ * @enum {string}
+ */
+nextform.models.ResultModel.ErrorMessage = {
+    UNKNOWN: 'Something went wrong',
+    INVALID_RESPONSE: 'Invalid response',
 };
