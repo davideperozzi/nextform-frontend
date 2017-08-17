@@ -57,7 +57,7 @@ nextform.handlers.UploadHandler.prototype.isSupported_ = function()
 /**
  * @public
  * @param {nextform.providers.FormProvider} provider
- * @return {nextform.tasks.UploadTask}
+ * @return {goog.Promise}
  */
 nextform.handlers.UploadHandler.prototype.upload = function(provider)
 {
@@ -119,7 +119,7 @@ nextform.handlers.UploadHandler.prototype.upload = function(provider)
 /**
  * @private
  * @param {nextform.providers.FormProvider} provider
- * @param {extform.events.UploadEvent} event
+ * @param {nextform.events.UploadEvent} event
  */
 nextform.handlers.UploadHandler.prototype.handleUploadEvent_ = function(provider, event)
 {

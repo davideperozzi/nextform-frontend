@@ -129,7 +129,7 @@ nextform.providers.FormProvider.prototype.valueHashesChanged_ = function()
     var changed = false;
 
     this.form_.fields.forEach(function(field, name){
-        if (field.currentHash != field.lastHash) {
+        if (field.currentValueHash != field.lastValueHash) {
             changed = true;
         }
     });
@@ -143,8 +143,8 @@ nextform.providers.FormProvider.prototype.valueHashesChanged_ = function()
 nextform.providers.FormProvider.prototype.setValueHashes_ = function()
 {
     this.form_.fields.forEach(function(field, name){
-        field.lastHash = field.currentHash;
-        field.currentHash = this.getValueHash_(field);
+        field.lastValueHash = field.currentValueHash;
+        field.currentValueHash = this.getValueHash_(field);
     }, this);
 };
 

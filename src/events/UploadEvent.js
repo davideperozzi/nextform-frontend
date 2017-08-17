@@ -9,7 +9,6 @@ goog.require('goog.events.Event');
  * @param {Array<nextform.models.upload.DataModel>} data
  * @param {nextform.tasks.UploadTask} task
  * @param {nextform.models.FormModel=} optForm
- * @param {number=} optProgress
  * @extends {goog.events.Event}
  */
 nextform.events.UploadEvent = function(type, data, task, optForm)

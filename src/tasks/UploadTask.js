@@ -122,7 +122,7 @@ nextform.tasks.UploadTask.prototype.getProgress = function()
 /**
  * @private
  * @param {goog.events.Event} event
- * @apram {nextform.models.upload.DataModel} model
+ * @param {nextform.models.upload.DataModel} model
  */
 nextform.tasks.UploadTask.prototype.handleProgress_ = function(model, event)
 {
@@ -130,19 +130,19 @@ nextform.tasks.UploadTask.prototype.handleProgress_ = function(model, event)
         this.progress_ = event['loaded'] / event['total'];
     }
 
-    var event = new nextform.events.UploadEvent(
+    var progressEvent = new nextform.events.UploadEvent(
         nextform.events.UploadEvent.EventType.PROGRESS, this.dataModels_, this
     );
 
-    event.activeData = model;
+    progressEvent.activeData = model;
 
-    this.dispatchEvent(event);
+    this.dispatchEvent(progressEvent);
 };
 
 /**
  * @private
  * @param {goog.events.Event} event
- * @apram {nextform.models.upload.DataModel} model
+ * @param {nextform.models.upload.DataModel} model
  */
 nextform.tasks.UploadTask.prototype.handleComplete_ = function(model, event)
 {

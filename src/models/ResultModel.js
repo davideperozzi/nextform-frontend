@@ -41,7 +41,7 @@ nextform.models.ResultModel = function()
 };
 
 /**
- * @enum {string}
+ * @enum {number}
  */
 nextform.models.ResultModel.ErrorCode = {
     NO_ERROR: 0,

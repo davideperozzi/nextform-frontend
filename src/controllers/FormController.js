@@ -233,7 +233,7 @@ nextform.controllers.FormController.prototype.getElements = function()
 
 /**
  * @private
- * @param {boolan=} optForceValidation
+ * @param {boolean=} optForceValidation
  * @return {goog.Promise}
  */
 nextform.controllers.FormController.prototype.send_ = function(optForceValidation)
@@ -413,7 +413,7 @@ nextform.controllers.FormController.prototype.handleResult_ = function(result)
 
 /**
  * @private
- * @param {nextform.models.ResultModel} results
+ * @param {nextform.models.ResultModel} result
  */
 nextform.controllers.FormController.prototype.handleGeneralError_ = function(result)
 {

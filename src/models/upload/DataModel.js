@@ -15,7 +15,7 @@ nextform.models.upload.DataModel = function(field, data)
     this.field = field;
 
     /**
-     * @piblic
+     * @public
      * @type {FormData}
      */
     this.data = data;
