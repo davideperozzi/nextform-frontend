@@ -131,8 +131,8 @@ nextform.controllers.FormController.prototype.init = function(element)
     this.form_.fields.addAll(this.createFields_());
 
     // Parse form to provider
-    this.formProvider_.parse(this.form_);
     this.formProvider_.setManager(this.componentManager_);
+    this.formProvider_.parse(this.form_);
 
     // Init error handlers
     for (var i = 0, len = this.errorHandlers_.length; i < len; i++) {
@@ -253,11 +253,12 @@ nextform.controllers.FormController.prototype.send_ = function(optForceValidatio
         var result = this.validate_();
 
         if (result.valid) {
+            var hasFileFields = this.formProvider_.hasFileField();
             var lastRequestResult = this.requestHandler_.getLastResult();
             var lastUploadResult = this.uploadHandler_.getLastResult();
 
             var lastRequestValid = lastRequestResult && lastRequestResult.valid;
-            var lastUploadValid = lastUploadResult && lastUploadResult.valid;
+            var lastUploadValid = hasFileFields ? (lastUploadResult && lastUploadResult.valid) : true;
             var valuesChanged = this.formProvider_.hasChanged();
 
             if (optForceValidation || valuesChanged || !lastUploadValid || !lastRequestValid) {
@@ -268,7 +269,7 @@ nextform.controllers.FormController.prototype.send_ = function(optForceValidatio
                 this.requestHandler_.send(this.formProvider_).then(function(response){
                     result = response.getResult();
 
-                    if (result.valid && this.formProvider_.hasFileField()) {
+                    if (result.valid && hasFileFields) {
                         // Prevent reuploading the files if the user didn't change anything
                         if ( ! valuesChanged && ! lastUploadValid) {
                             this.handleResult_(lastUploadResult);
@@ -388,7 +389,7 @@ nextform.controllers.FormController.prototype.validateField_ = function(field)
 
     field.validators.forEach(function(validator, name){
         if ( ! validator.validate(value)) {
-            var message = 'Invalid field';
+            var message = 'Something went wrong';
 
             if (field.errors.containsKey(name)) {
                 message = field.errors.get(name);
@@ -503,9 +504,7 @@ nextform.controllers.FormController.prototype.handleUploadElementChange_ = funct
     result.valid = result.errors.isEmpty();
 
     if ( ! result.valid) {
-        for (var i = 0, len = field.elements.length; i < len; i++) {
-            field.elements[i].value = null;
-        }
+        this.formProvider_.clearFileField(field);
     }
 
     this.handleResult_(result);

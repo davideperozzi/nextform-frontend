@@ -32,9 +32,21 @@ nextform.validators.AbstractValidator.prototype.validate = function(value)
 
 /**
  * @protected
+ * @param {*} value
  * @return {boolean}
  */
 nextform.validators.AbstractValidator.prototype.isFileValue = function(value)
 {
-    return window.hasOwnProperty('FileList') && value instanceof FileList;
+    var isFileList = (window.hasOwnProperty('FileList') && value instanceof FileList);
+    var isFileArray = goog.isArray(value) && window.hasOwnProperty('File');
+
+    if (isFileArray) {
+        goog.array.forEach(value, function(file){
+            if ( ! (file instanceof File)) {
+                isFileArray = false;
+            }
+        });
+    }
+
+    return isFileList || isFileArray;
 };

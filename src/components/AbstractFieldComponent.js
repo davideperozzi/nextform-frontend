@@ -19,6 +19,14 @@ goog.inherits(
 
 /**
  * @public
+ */
+nextform.components.AbastractFieldComponent.prototype.clearValue = function()
+{
+    goog.abstractMethod();
+};
+
+/**
+ * @public
  * @return {*}
  */
 nextform.components.AbastractFieldComponent.prototype.getValue = function()

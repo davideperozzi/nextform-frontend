@@ -542,6 +542,32 @@ nextform.providers.FormProvider.prototype.update = function()
 
 /**
  * @public
+ * @param {nextform.models.fields.AbstractFieldModel} field
+ */
+nextform.providers.FormProvider.prototype.clearFileField = function(field)
+{
+    if (field instanceof nextform.models.fields.CollectionFieldModel) {
+        // @todo: implement recursive field clearing
+    }
+    else {
+        if (field.elements.length == 1) {
+            var element = field.elements[0];
+            var component = this.getComponent_(element);
+
+            if (this.isFileElement_(element)) {
+                if (component) {
+                    component.clearValue();
+                }
+                else {
+                    element.value = null;
+                }
+            }
+        }
+    }
+};
+
+/**
+ * @public
  * @param {string} name
  * @return {string}
  */

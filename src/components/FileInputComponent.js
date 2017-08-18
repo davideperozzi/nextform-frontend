@@ -75,6 +75,24 @@ nextform.components.FileInputComponent.prototype.getValue = function()
     return this.files_.getValues();
 };
 
+/** @inheritDoc */
+nextform.components.FileInputComponent.prototype.clearValue = function()
+{
+    var files = goog.array.slice(/** @type {IArrayLike} */ (this.inputElement_.files), 0);
+
+    for (var i = 0, len = files.length; i < len; i++) {
+        var signature = nextform.helpers.files.signature(files[i]);
+
+        if (this.files_.containsKey(signature)) {
+            this.files_.remove(signature);
+        }
+    }
+
+    this.dispatchEvent(nextform.components.FileInputComponent.EventType.UPDATE);
+
+    this.inputElement_.value = null;
+};
+
 /**
  * @public
  * @return {goog.structs.Map<string, File>}
@@ -128,8 +146,6 @@ nextform.components.FileInputComponent.prototype.handleInputChange_ = function(e
             this.files_.set(signature, file);
         }
     }, this);
-
-    this.inputElement_.value = null;
 
     this.dispatchEvent(nextform.components.FileInputComponent.EventType.UPDATE);
 };
