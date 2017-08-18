@@ -253,10 +253,14 @@ nextform.controllers.FormController.prototype.send_ = function(optForceValidatio
         var result = this.validate_();
 
         if (result.valid) {
-            var lastResult = this.requestHandler_.getLastResult();
-            var needsRequest = optForceValidation || this.formProvider_.hasChanged();
+            var lastRequestResult = this.requestHandler_.getLastResult();
+            var lastUploadResult = this.uploadHandler_.getLastResult();
 
-            if (needsRequest || ! lastResult || (lastResult && ! lastResult.valid)) {
+            var lastRequestValid = lastRequestResult && lastRequestResult.valid;
+            var lastUploadValid = lastUploadResult && lastUploadResult.valid;
+            var valuesChanged = this.formProvider_.hasChanged();
+
+            if (optForceValidation || valuesChanged || !lastUploadValid || !lastRequestValid) {
                 this.dispatchEvent(new nextform.events.FormEvent(
                     nextform.events.FormEvent.EventType.REQUEST
                 ));
@@ -265,24 +269,33 @@ nextform.controllers.FormController.prototype.send_ = function(optForceValidatio
                     result = response.getResult();
 
                     if (result.valid && this.formProvider_.hasFileField()) {
-                        this.upload_().then(
-                            function(result){
-                                this.handleResult_(result);
-                                this.sending_ = false;
+                        // Prevent reuploading the files if the user didn't change anything
+                        if ( ! valuesChanged && ! lastUploadValid) {
+                            this.handleResult_(lastUploadResult);
+                            this.sending_ = false;
 
-                                if (result.valid) {
-                                    this.formProvider_.setChanged(false);
-                                }
+                            reject(this.sending_);
+                        }
+                        else {
+                            this.upload_().then(
+                                function(result){
+                                    this.handleResult_(result);
+                                    this.sending_ = false;
 
-                                resolve(result);
-                            },
-                            function(){
-                                this.sending_ = false;
+                                    if (result.valid) {
+                                        this.formProvider_.setChanged(false);
+                                    }
 
-                                reject(this.sending_)
-                            },
-                            this
-                        );
+                                    resolve(result);
+                                },
+                                function(){
+                                    this.sending_ = false;
+
+                                    reject(this.sending_)
+                                },
+                                this
+                            );
+                        }
                     }
                     else {
                         this.handleResult_(result);

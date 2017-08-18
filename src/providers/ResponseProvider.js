@@ -26,10 +26,21 @@ nextform.providers.ResponseProvider.prototype.parse = function(data)
         throw new Error('Response data to parse is invalid');
     }
 
-    this.result_.session = this.result_.session && !!data['session'];
-    this.result_.valid = this.result_.valid && !!data['valid'];
+    var session = !!data['session'];
+    var valid = !!data['valid'];
+    var hasErrors = goog.isObject(data['errors']);
 
-    if (goog.isObject(data['errors'])) {
+    this.result_.session = this.result_.session && session;
+    this.result_.valid = this.result_.valid && valid;
+
+    if (session && hasErrors) {
+        for (var key in data['errors']) {
+            this.result_.errorCode = nextform.models.ResultModel.ErrorCode.CUSTOM_ERROR;
+            this.result_.errorMessage = data['errors'][key];
+            break;
+        }
+    }
+    else if (hasErrors) {
         for (var name in data['errors']) {
             var errors = [];
 

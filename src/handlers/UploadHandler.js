@@ -27,6 +27,12 @@ nextform.handlers.UploadHandler = function()
      * @type {goog.events.EventHandler}
      */
     this.eventHandler_ = new goog.events.EventHandler(this);
+
+    /**
+     * @private
+     * @type {nextform.models.ResultModel}
+     */
+    this.lastResult_ = null;
 };
 
 goog.inherits(
@@ -113,7 +119,13 @@ nextform.handlers.UploadHandler.prototype.upload = function(provider)
         });
     }
 
-    return taskManager.run();
+    var promise = taskManager.run();
+
+    promise.then(function(response){
+        this.lastResult_ = response.getResult();
+    }, null, this);
+
+    return promise;
 };
 
 /**
@@ -126,4 +138,13 @@ nextform.handlers.UploadHandler.prototype.handleUploadEvent_ = function(provider
     event.form = provider.getModel();
 
     this.dispatchEvent(event);
+};
+
+/**
+ * @public
+ * @return {nextform.models.ResultModel}
+ */
+nextform.handlers.UploadHandler.prototype.getLastResult = function()
+{
+    return this.lastResult_;
 };
