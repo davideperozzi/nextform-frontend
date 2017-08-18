@@ -15,6 +15,7 @@ goog.require('nextform.validators.ZipcodeValidator');
 goog.require('nextform.validators.MaxlengthValidator');
 goog.require('nextform.validators.MinlengthValidator');
 goog.require('nextform.validators.MaxsizeValidator');
+goog.require('nextform.validators.MinsizeValidator');
 
 /**
  * @constructor

@@ -41,7 +41,7 @@ nextform.validators.AbstractValidator.prototype.isFileValue = function(value)
     var isFileArray = goog.isArray(value) && window.hasOwnProperty('File');
 
     if (isFileArray) {
-        goog.array.forEach(value, function(file){
+        goog.array.forEach(/** @type {IArrayLike} */ (value), function(file){
             if ( ! (file instanceof File)) {
                 isFileArray = false;
             }
