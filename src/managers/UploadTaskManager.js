@@ -59,6 +59,10 @@ nextform.managers.UploadTaskManager.prototype.appendTask = function(task)
  */
 nextform.managers.UploadTaskManager.prototype.run = function()
 {
+    if (this.tasks_.length == 0) {
+        return goog.Promise.resolve();
+    }
+
     var promises = [];
     var responseData = [];
 

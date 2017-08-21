@@ -103,11 +103,25 @@ nextform.tasks.UploadTask.prototype.run = function()
 
 /**
  * @public
- * @param {nextform.models.upload.DataModel} data
+ * @param {nextform.models.upload.DataModel} model
  */
-nextform.tasks.UploadTask.prototype.appendData = function(data)
+nextform.tasks.UploadTask.prototype.appendData = function(model)
 {
-    this.dataModels_.push(data);
+    if (window.hasOwnProperty('FormData') &&
+        window.hasOwnProperty('File') &&
+        model.data instanceof FormData) {
+        var entries = model.data.entries();
+        var next = {};
+
+        while ((next = entries.next()) && ! next.done) {
+            if (next.value[1] instanceof File) {
+                model.hasFiles = true;
+                break;
+            }
+        }
+    }
+
+    this.dataModels_.push(model);
 };
 
 /**

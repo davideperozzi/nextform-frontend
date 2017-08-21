@@ -22,6 +22,12 @@ nextform.models.upload.DataModel = function(field, data)
 
     /**
      * @public
+     * @type {boolean}
+     */
+    this.hasFiles = false;
+
+    /**
+     * @public
      * @type {Object}
      */
     this.response = {};

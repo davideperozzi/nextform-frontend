@@ -22,6 +22,12 @@ nextform.components.FileInputComponent = function()
 
     /**
      * @private
+     * @type {Array<File>}
+     */
+    this.lastFiles_ = [];
+
+    /**
+     * @private
      * @type {boolean}
      */
     this.multiple_ = false;
@@ -78,7 +84,7 @@ nextform.components.FileInputComponent.prototype.getValue = function()
 /** @inheritDoc */
 nextform.components.FileInputComponent.prototype.clearValue = function()
 {
-    var files = goog.array.slice(/** @type {IArrayLike} */ (this.inputElement_.files), 0);
+    var files = this.lastFiles_;
 
     for (var i = 0, len = files.length; i < len; i++) {
         var signature = nextform.helpers.files.signature(files[i]);
@@ -90,6 +96,7 @@ nextform.components.FileInputComponent.prototype.clearValue = function()
 
     this.dispatchEvent(nextform.components.FileInputComponent.EventType.UPDATE);
 
+    this.lastFiles_ = [];
     this.inputElement_.value = null;
 };
 
@@ -124,6 +131,7 @@ nextform.components.FileInputComponent.prototype.remove = function(sigOrFile, op
         return true;
     }
 
+
     return false;
 };
 
@@ -146,6 +154,9 @@ nextform.components.FileInputComponent.prototype.handleInputChange_ = function(e
             this.files_.set(signature, file);
         }
     }, this);
+
+    this.lastFiles_ = files;
+    this.inputElement_.value = null;
 
     this.dispatchEvent(nextform.components.FileInputComponent.EventType.UPDATE);
 };

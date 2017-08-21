@@ -271,7 +271,7 @@ nextform.controllers.FormController.prototype.send_ = function(optForceValidatio
 
                     if (result.valid && hasFileFields) {
                         // Prevent reuploading the files if the user didn't change anything
-                        if ( ! valuesChanged && ! lastUploadValid) {
+                        if ( ! valuesChanged && ! lastUploadValid && lastUploadResult) {
                             this.handleResult_(lastUploadResult);
                             this.sending_ = false;
 
@@ -435,7 +435,7 @@ nextform.controllers.FormController.prototype.handleGeneralError_ = function(res
     // Maybe "CustomErrorHandler"?
 
     if (result.errorCode != nextform.models.ResultModel.ErrorCode.NO_ERROR) {
-        alert(result.errorMessage);
+        window.alert(result.errorMessage);
     }
 };
 

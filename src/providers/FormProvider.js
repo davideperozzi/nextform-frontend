@@ -371,7 +371,7 @@ nextform.providers.FormProvider.prototype.getFieldElements = function(optField)
             if (field.fields.length > 0) {
                 elements = goog.array.concat(this.getFieldElements(field), elements);
             }
-        });
+        }, this);
     }
 
     return elements;
