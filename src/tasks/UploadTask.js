@@ -110,10 +110,10 @@ nextform.tasks.UploadTask.prototype.appendData = function(model)
     if (window.hasOwnProperty('FormData') &&
         window.hasOwnProperty('File') &&
         model.data instanceof FormData) {
-        var entries = model.data.entries();
+        var entries = model.data['entries']();
         var next = {};
 
-        while ((next = entries.next()) && ! next.done) {
+        while ((next = entries['next']()) && ! next.done) {
             if (next.value[1] instanceof File) {
                 model.hasFiles = true;
                 break;
