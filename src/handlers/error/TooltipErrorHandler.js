@@ -94,7 +94,7 @@ nextform.handlers.error.TooltipErrorHandler = function()
 
     /**
      * @private
-     * @type {function(...?)}
+     * @type {function(...?)|null}
      */
     this.updateAnimationTask_ = null;
 
