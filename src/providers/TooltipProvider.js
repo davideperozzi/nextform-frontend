@@ -40,7 +40,8 @@ nextform.providers.TooltipProvider.prototype.show = function(element, message)
     this.tooltip_.setContent(message).then(function(){
         this.tooltip_.setPosition(
             new goog.positioning.AnchoredPosition(
-                element, goog.positioning.Corner.BOTTOM_START
+                element, goog.positioning.Corner.BOTTOM_START,
+                goog.positioning.Overflow.ADJUST_Y | goog.positioning.Overflow.ADJUST_X
             )
         );
 
@@ -63,6 +64,24 @@ nextform.providers.TooltipProvider.prototype.hide = function()
 nextform.providers.TooltipProvider.prototype.update = function()
 {
     this.tooltip_.update();
+};
+
+/**
+ * @public
+ * @param {number} ms
+ */
+nextform.providers.TooltipProvider.prototype.setPulseTime = function(ms)
+{
+    this.tooltip_.setPulseTime(ms);
+};
+
+/**
+ * @public
+ * @return {boolean}
+ */
+nextform.providers.TooltipProvider.prototype.isVisible = function()
+{
+    return this.tooltip_.isVisible();
 };
 
 /**

@@ -329,10 +329,6 @@ nextform.controllers.FormController.prototype.send_ = function(optForceValidatio
             this.handleResult_(result);
             this.sending_ = false;
 
-            if (result.valid) {
-                this.formProvider_.setChanged(false);
-            }
-
             resolve(result);
         }
     }, this);
