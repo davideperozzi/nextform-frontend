@@ -28,9 +28,11 @@ nextform.providers.ResponseProvider.prototype.parse = function(data)
 
     var session = !!data['session'];
     var valid = !!data['valid'];
+    var complete = session ? !!data['complete'] : true;
     var hasErrors = goog.isObject(data['errors']);
 
     this.result_.session = this.result_.session && session;
+    this.result_.complete = this.result_.complete && complete;
     this.result_.valid = this.result_.valid && valid;
 
     if (session && hasErrors) {
@@ -98,14 +100,16 @@ nextform.providers.ResponseProvider.prototype.setError = function(message, optCo
  * @public
  * @param {boolean} valid
  * @param {boolean} session
+ * @param {boolean} complete
  * @param {Object=} optErrors
  * @return {Object}
  */
-nextform.providers.ResponseProvider.createRaw = function(valid, session, optErrors)
+nextform.providers.ResponseProvider.createRaw = function(valid, session, complete, optErrors)
 {
     return {
         'valid': valid,
         'session': session,
+        'complete': complete,
         'errors': optErrors || {}
     };
 };

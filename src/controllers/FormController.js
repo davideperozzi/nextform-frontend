@@ -158,9 +158,9 @@ nextform.controllers.FormController.prototype.init = function(element)
 
     // Init component manager. Set the listeners of the own controller after the controller
     // initalized and is ready. This ensures the listeners set by the components has a
-    // higher priority than the own onws. This will be useful if for example the file field
+    // higher priority than the own ones. This will be useful if for example the file field
     // needs data on change but the file input will be cleared by the controller on change too
-    // so the component won't receive the event on time the all the data is gone if the result
+    // so the component won't receive the event on time then all the data is gone if the result
     // is not valid
     return new goog.Promise(function(resolve, reject){
         this.componentManager_.init().then(function(){

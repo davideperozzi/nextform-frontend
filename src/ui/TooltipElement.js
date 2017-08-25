@@ -214,8 +214,8 @@ nextform.ui.TooltipElement.prototype.setPulseTime = function(ms)
 nextform.ui.TooltipElement.prototype.update = function()
 {
     this.reposition_();
-    this.updateSize_();
     this.updateMinSize_();
+    this.updateSize_();
 };
 
 /**

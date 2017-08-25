@@ -184,7 +184,7 @@ nextform.tasks.UploadTask.prototype.handleComplete_ = function(model, event)
             }];
 
             model.response = nextform.providers.ResponseProvider.createRaw(
-                false, false, errors
+                false, false, false, errors
             );
         }
     }
@@ -196,7 +196,7 @@ nextform.tasks.UploadTask.prototype.handleComplete_ = function(model, event)
         }];
 
         model.response = nextform.providers.ResponseProvider.createRaw(
-            false, false, errors
+            false, false, false, errors
         );
     }
 

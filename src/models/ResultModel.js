@@ -19,6 +19,12 @@ nextform.models.ResultModel = function()
      * @public
      * @type {boolean}
      */
+    this.complete = true;
+
+    /**
+     * @public
+     * @type {boolean}
+     */
     this.session = false;
 
     /**
