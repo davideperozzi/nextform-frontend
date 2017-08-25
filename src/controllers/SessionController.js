@@ -126,7 +126,7 @@ nextform.controllers.SessionController.prototype.handleFormResult_ = function(ev
         event.result
     ));
 
-    if (event.result && event.result.session && event.result.valid) {
+    if (event.result && event.result.session && event.result.valid && event.result.complete) {
         this.dispatchEvent(new nextform.events.SessionEvent(
             nextform.events.SessionEvent.EventType.COMPLETE,
             formController,
