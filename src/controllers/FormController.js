@@ -4,6 +4,7 @@ goog.provide('nextform.controllers.FormController');
 goog.require('goog.dom');
 goog.require('goog.asserts');
 goog.require('goog.Promise');
+goog.require('goog.string');
 goog.require('goog.structs.Map');
 goog.require('goog.dom.dataset');
 goog.require('goog.events.EventHandler');
@@ -539,7 +540,7 @@ nextform.controllers.FormController.prototype.createFields_ = function()
         var fields = [];
 
         goog.array.forEach(keys, function(key){
-            if (key == name || key.startsWith(name)) {
+            if (key == name || goog.string.startsWith(key, name)) {
                 fields.push(formFields.get(key));
                 formFields.remove(key);
             }

@@ -2,6 +2,7 @@ goog.provide('nextform.components.FilePreviewComponent');
 
 // goog
 goog.require('goog.style');
+goog.require('goog.string');
 goog.require('goog.structs.Map');
 goog.require('goog.dom.classlist');
 
@@ -147,7 +148,7 @@ nextform.components.FilePreviewComponent.prototype.createPreviewElement_ = funct
     goog.dom.setTextContent(sizeElement, (file.size / 1000000).toFixed(2) + ' mb');
     goog.dom.setTextContent(extensionElement, nextform.helpers.files.extension(file));
 
-    if (file.type.startsWith('image')) {
+    if (goog.string.startsWith(file.type, 'image')) {
         goog.dom.classlist.enable(element, 'loading', true);
 
         setTimeout(function(){

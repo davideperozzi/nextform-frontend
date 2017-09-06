@@ -2,6 +2,7 @@ goog.provide('nextform.factories.ValidatorFactory');
 
 // goog
 goog.require('goog.array');
+goog.require('goog.string');
 goog.require('goog.structs.Map');
 
 // dj
@@ -81,7 +82,7 @@ nextform.factories.ValidatorFactory.prototype.getValidators_ = function(field, e
     var identifier = nextform.factories.ValidatorFactory.VALIDATOR_IDENTIFIER;
 
     for (var name in attributes) {
-        if ( ! name.startsWith(identifier)) {
+        if ( ! goog.string.startsWith(name, identifier)) {
             continue;
         }
 
@@ -117,7 +118,7 @@ nextform.factories.ValidatorFactory.prototype.getErrors_ = function(field, eleme
     var identifier = nextform.factories.ValidatorFactory.ERROR_IDENTIFIER;
 
     for (var name in attributes) {
-        if ( ! name.startsWith(identifier)) {
+        if ( ! goog.string.startsWith(name, identifier)) {
             continue;
         }
 
