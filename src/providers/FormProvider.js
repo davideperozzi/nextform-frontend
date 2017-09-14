@@ -2,6 +2,7 @@ goog.provide('nextform.providers.FormProvider');
 
 // goog
 goog.require('goog.array');
+goog.require('goog.string');
 goog.require('goog.crypt.Md5');
 goog.require('goog.dom.forms');
 goog.require('goog.structs.Map');
@@ -9,6 +10,7 @@ goog.require('goog.dom.InputType');
 
 // nextform
 goog.require('nextform.helpers.files');
+goog.require('nextform.models.CsrfTokenModel');
 
 /**
  * @constructor
@@ -29,9 +31,21 @@ nextform.providers.FormProvider = function()
 
     /**
      * @private
+     * @type {goog.structs.Map<string, boolean>}
+     */
+    this.excludeData_ = new goog.structs.Map();
+
+    /**
+     * @private
      * @type {boolean}
      */
     this.changed_ = false;
+
+    /**
+     * @private
+     * @type {nextform.models.CsrfTokenModel}
+     */
+    this.csrfToken_ = null;
 
     /**
      * @private
@@ -45,6 +59,12 @@ nextform.providers.FormProvider = function()
  * @type {string}
  */
 nextform.providers.FormProvider.SESSION_FIELD_NAME = '_73d39f2e64de879f0876fdaec6c96a16';
+
+/**
+ * @const
+ * @type {string}
+ */
+nextform.providers.FormProvider.CSRF_TOKEN_FIELD_NAME_PREFIX = 'nextform_csrf_token_';
 
 /**
  * @public
@@ -537,6 +557,22 @@ nextform.providers.FormProvider.prototype.update = function()
         this.config_.set('method', formElement.getAttribute('method'));
     }
 
+    // Read csrf token
+    this.form_.fields.forEach(function(field){
+        var prefix = nextform.providers.FormProvider.CSRF_TOKEN_FIELD_NAME_PREFIX;
+
+        if (goog.string.startsWith(field.name, prefix)) {
+            this.excludeData_.set(field.name, true);
+
+            var fieldValue = this.getFieldValue(field);
+            var tokenId = goog.string.remove(field.name, prefix);
+
+            this.csrfToken_ = new nextform.models.CsrfTokenModel(
+                tokenId, this.getFieldValue(field)
+            );
+        }
+    }, this);
+
     this.setValueHashes_();
 };
 
@@ -586,5 +622,33 @@ nextform.providers.FormProvider.prototype.getConfig = function(name)
  */
 nextform.providers.FormProvider.prototype.getData = function()
 {
-    return goog.dom.forms.getFormDataString(this.form_.element);
+    var dataMap = goog.dom.forms.getFormDataMap(this.form_.element);
+    var dataBuffer = [];
+
+    dataMap.forEach(function(value, name){
+        if ( ! this.excludeData_.containsKey(name) ||
+               this.excludeData_.containsKey(name) && ! this.excludeData_.get(name)) {
+            dataBuffer.push(encodeURIComponent(name) + '=' + encodeURIComponent(value));
+        }
+    }, this);
+
+    return dataBuffer.join('&');
+};
+
+/**
+ * @public
+ * @return {boolean}
+ */
+nextform.providers.FormProvider.prototype.hasCsrfToken = function()
+{
+    return this.csrfToken_ instanceof nextform.models.CsrfTokenModel;
+};
+
+/**
+ * @public
+ * @return {nextform.models.CsrfTokenModel}
+ */
+nextform.providers.FormProvider.prototype.getCsrfToken = function()
+{
+    return this.csrfToken_;
 };

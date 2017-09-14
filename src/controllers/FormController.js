@@ -50,6 +50,12 @@ nextform.controllers.FormController = function()
 
     /**
      * @private
+     * @type {boolean}
+     */
+    this.noValidation_ = false;
+
+    /**
+     * @private
      * @type {nextform.models.ConfigModel}
      */
     this.config_ = new nextform.models.ConfigModel();
@@ -113,13 +119,17 @@ goog.inherits(
 /**
  * @public
  * @param {HTMLFormElement} element
+ * @param {boolean=} optNoValidation
  * @return {goog.Promise}
  */
-nextform.controllers.FormController.prototype.init = function(element)
+nextform.controllers.FormController.prototype.init = function(element, optNoValidation)
 {
     if (element.tagName.toLowerCase() != 'form') {
         throw new Error('Invalid form given');
     }
+
+    // Set if form should be validated by frontend
+    this.noValidation_ = !!optNoValidation;
 
     // Setup component manager
     this.componentManager_.setRootElement(element);
@@ -357,19 +367,21 @@ nextform.controllers.FormController.prototype.validate_ = function()
 {
     var result = new nextform.models.ResultModel();
 
-    this.dispatchEvent(new nextform.events.FormEvent(
-        nextform.events.FormEvent.EventType.VALIDATE
-    ));
+    if ( ! this.noValidation_) {
+        this.dispatchEvent(new nextform.events.FormEvent(
+            nextform.events.FormEvent.EventType.VALIDATE
+        ));
 
-    this.form_.fields.forEach(function(field, name){
-        var errors = this.validateField_(field);
+        this.form_.fields.forEach(function(field, name){
+            var errors = this.validateField_(field);
 
-        if ( ! errors.isEmpty()) {
-            result.errors.set(name, errors.getValues());
-        }
-    }, this);
+            if ( ! errors.isEmpty()) {
+                result.errors.set(name, errors.getValues());
+            }
+        }, this);
 
-    result.valid = result.errors.isEmpty();
+        result.valid = result.errors.isEmpty();
+    }
 
     return result;
 };
