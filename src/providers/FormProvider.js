@@ -567,9 +567,11 @@ nextform.providers.FormProvider.prototype.update = function()
             var fieldValue = this.getFieldValue(field);
             var tokenId = goog.string.remove(field.name, prefix);
 
-            this.csrfToken_ = new nextform.models.CsrfTokenModel(
-                tokenId, this.getFieldValue(field)
-            );
+            if (goog.isString(fieldValue)) {
+                this.csrfToken_ = new nextform.models.CsrfTokenModel(
+                    tokenId, fieldValue
+                );
+            }
         }
     }, this);
 
@@ -628,11 +630,26 @@ nextform.providers.FormProvider.prototype.getData = function()
     dataMap.forEach(function(value, name){
         if ( ! this.excludeData_.containsKey(name) ||
                this.excludeData_.containsKey(name) && ! this.excludeData_.get(name)) {
-            dataBuffer.push(encodeURIComponent(name) + '=' + encodeURIComponent(value));
+            dataBuffer.push(encodeURIComponent(name) + '=' + encodeURIComponent(value.join(',')));
         }
     }, this);
 
     return dataBuffer.join('&');
+};
+
+/**
+ * @public
+ * @return {goog.structs.Map<string, string>}
+ */
+nextform.providers.FormProvider.prototype.getHeaders = function()
+{
+    var headers = new goog.structs.Map();
+
+    if (this.csrfToken_) {
+        headers.set('X-CSRF-Token', this.csrfToken_.id + ':' + this.csrfToken_.value);
+    }
+
+    return headers;
 };
 
 /**

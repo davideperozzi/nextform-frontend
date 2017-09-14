@@ -18,9 +18,10 @@ goog.require('nextform.events.UploadEvent');
  * @constructor
  * @param {goog.Uri} uri
  * @param {string=} optMethod
+ * @param {goog.structs.Map<string, string>=} optHeaders
  * @extends {goog.events.EventTarget}
  */
-nextform.tasks.UploadTask = function(uri, optMethod)
+nextform.tasks.UploadTask = function(uri, optMethod, optHeaders)
 {
     nextform.tasks.UploadTask.base(this, 'constructor');
 
@@ -35,6 +36,12 @@ nextform.tasks.UploadTask = function(uri, optMethod)
      * @type {string}
      */
     this.method_ = optMethod || 'GET';
+
+    /**
+     * @private
+     * @type {goog.structs.Map}
+     */
+    this.headers_ = optHeaders || null;
 
     /**
      * @private
@@ -91,7 +98,7 @@ nextform.tasks.UploadTask.prototype.run = function()
         this.eventHandler_.listen(xhr, goog.net.EventType.COMPLETE,
             goog.partial(this.handleComplete_, this.dataModels_[i]));
 
-        xhr.send(this.uri_, this.method_, this.dataModels_[i].data);
+        xhr.send(this.uri_, this.method_, this.dataModels_[i].data, this.headers_);
     }
 
     this.dispatchEvent(new nextform.events.UploadEvent(
@@ -107,18 +114,27 @@ nextform.tasks.UploadTask.prototype.run = function()
  */
 nextform.tasks.UploadTask.prototype.appendData = function(model)
 {
-    if (window.hasOwnProperty('FormData') &&
-        window.hasOwnProperty('File') &&
-        model.data instanceof FormData) {
-        var entries = model.data['entries']();
-        var next = {};
+    // IE won't let us look in the form data here.
+    // so this prevent the task from crashing.
+    //
+    // @todo: Write a wrapper for FormData and keep track
+    // of all items added and removed
+    try {
+        if (window.hasOwnProperty('FormData') &&
+            window.hasOwnProperty('File') &&
+            model.data instanceof FormData) {
+            var entries = model.data['entries']();
+            var next = {};
 
-        while ((next = entries['next']()) && ! next.done) {
-            if (next.value[1] instanceof File) {
-                model.hasFiles = true;
-                break;
+            while ((next = entries['next']()) && ! next.done) {
+                if (next.value[1] instanceof File) {
+                    model.hasFiles = true;
+                    break;
+                }
             }
         }
+    } catch(e) {
+        console.warn(e.message);
     }
 
     this.dataModels_.push(model);

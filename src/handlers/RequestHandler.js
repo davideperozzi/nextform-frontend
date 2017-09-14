@@ -80,19 +80,11 @@ nextform.handlers.RequestHandler.prototype.send = function(provider)
         this.handleComplete_
     );
 
-    var headers = new goog.structs.Map();
-
-    if (provider.hasCsrfToken()) {
-        var token = provider.getCsrfToken();
-
-        headers.set('X-CSRF-Token', token.id + ':' + token.value);
-    }
-
     this.xhrIo_.send(
         provider.getConfig('action'),
         provider.getConfig('method'),
         provider.getData(),
-        headers
+        provider.getHeaders()
     );
 
     return this.eventResolver_.promise;

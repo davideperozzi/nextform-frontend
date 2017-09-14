@@ -262,7 +262,6 @@ nextform.controllers.FormController.prototype.send_ = function(optForceValidatio
         this.sending_ = true;
 
         var result = this.validate_();
-
         if (result.valid) {
             var hasFileFields = this.formProvider_.hasFileField();
             var lastRequestResult = this.requestHandler_.getLastResult();
@@ -524,12 +523,29 @@ nextform.controllers.FormController.prototype.handleUploadElementChange_ = funct
  */
 nextform.controllers.FormController.prototype.createFields_ = function()
 {
+    var formElementValues = goog.array.slice(this.form_.element.elements, 0);
+    var formElementNames = [];
+
+    // Get all form element names
+    for (var i = 0, len = formElementValues.length; i < len; i++) {
+        var name = formElementValues[i].getAttribute('name');
+
+        if (name && ! goog.string.isEmptyString(name)) {
+            formElementNames.push(name);
+        }
+    }
+
     var formElements = this.form_.element.elements;
     var formFields = new goog.structs.Map();
 
-    // Get default fields
-    for (var name in formElements) {
-        var items = formElements.namedItem(name);
+    // Remove duplicates to use the namedItem function
+    // on the elements directly
+    goog.array.removeDuplicates(formElementNames);
+
+    // Read items and item lists with given form element names
+    for (var i = 0, len = formElementNames.length; i < len; i++) {
+        var name = formElementNames[i];
+        var items = formElements.namedItem(formElementNames[i]);
 
         if (items) {
             formFields.set(name, this.fieldFactory_.createField(

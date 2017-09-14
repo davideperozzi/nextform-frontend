@@ -111,7 +111,7 @@ nextform.handlers.UploadHandler.prototype.upload = function(provider)
             // Create task and append it to the task manager
             var dataModel = new nextform.models.upload.DataModel(field, data);
             var uploadTask = new nextform.tasks.UploadTask(
-                uploadUri, provider.getConfig('method')
+                uploadUri, provider.getConfig('method'), provider.getHeaders()
             );
 
             uploadTask.appendData(dataModel);
