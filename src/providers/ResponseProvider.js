@@ -31,7 +31,7 @@ nextform.providers.ResponseProvider.prototype.parse = function(data)
     var complete = session ? !!data['complete'] : true;
     var hasErrors = goog.isObject(data['errors']);
 
-    this.result_.session = this.result_.session && session;
+    this.result_.session = session;
     this.result_.complete = this.result_.complete && complete;
     this.result_.valid = this.result_.valid && valid;
 
