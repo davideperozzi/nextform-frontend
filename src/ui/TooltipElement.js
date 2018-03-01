@@ -114,8 +114,6 @@ nextform.ui.TooltipElement.prototype.init = function(parent)
         goog.events.listen(this.resizeProvider_, dj.ext.providers.ResizeProvider.EventType.RESIZE,
             this.handleResize_, false, this);
     }, this);
-
-
 };
 
 /**

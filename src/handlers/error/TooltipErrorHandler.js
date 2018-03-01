@@ -226,7 +226,7 @@ nextform.handlers.error.TooltipErrorHandler.prototype.execute = function(errors)
 nextform.handlers.error.TooltipErrorHandler.prototype.show = function(element, message)
 {
     if (this.updateAnimationTask_ && ! this.animationTaskTicking_) {
-        this.updateAnimationTask_();
+        setTimeout(this.updateAnimationTask_.bind(this), 0);
     }
 
     this.tooltip_.show(element, message);
