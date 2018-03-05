@@ -17,6 +17,9 @@ goog.require('nextform.validators.MaxlengthValidator');
 goog.require('nextform.validators.MinlengthValidator');
 goog.require('nextform.validators.MaxsizeValidator');
 goog.require('nextform.validators.MinsizeValidator');
+goog.require('nextform.validators.EmailValidator');
+goog.require('nextform.validators.MincountValidator');
+goog.require('nextform.validators.MaxcountValidator');
 
 /**
  * @constructor
@@ -32,9 +35,12 @@ nextform.factories.ValidatorFactory = function()
         'zipcode': nextform.validators.ZipcodeValidator,
         'maxlength': nextform.validators.MaxlengthValidator,
         'minlength': nextform.validators.MinlengthValidator,
+        'mincount': nextform.validators.MincountValidator,
+        'maxcount': nextform.validators.MaxcountValidator,
         'filetype': nextform.validators.FiletypeValidator,
         'maxsize': nextform.validators.MaxsizeValidator,
-        'minsize': nextform.validators.MinsizeValidator
+        'minsize': nextform.validators.MinsizeValidator,
+        'email': nextform.validators.EmailValidator
     });
 };
 
