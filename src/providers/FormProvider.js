@@ -310,8 +310,8 @@ nextform.providers.FormProvider.prototype.getComponent_ = function(element)
 nextform.providers.FormProvider.prototype.getName = function()
 {
     return this.form_.element.hasAttribute('name')
-            ? this.form_.element.getAttribute('name')
-            : '';
+        ? this.form_.element.getAttribute('name')
+        : '';
 };
 
 /**
@@ -629,8 +629,10 @@ nextform.providers.FormProvider.prototype.getData = function()
 
     dataMap.forEach(function(value, name){
         if ( ! this.excludeData_.containsKey(name) ||
-               this.excludeData_.containsKey(name) && ! this.excludeData_.get(name)) {
-            dataBuffer.push(encodeURIComponent(name) + '=' + encodeURIComponent(value.join(',')));
+            this.excludeData_.containsKey(name) && ! this.excludeData_.get(name)) {
+            for (var i = 0, len = value.length; i < len; i++) {
+                dataBuffer.push(encodeURIComponent(name) + '=' + encodeURIComponent(value[i]));
+            }
         }
     }, this);
 
