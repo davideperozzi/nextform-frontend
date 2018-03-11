@@ -22,9 +22,7 @@ goog.inherits(
 /** @inheritDoc */
 nextform.validators.EmailValidator.prototype.validate = function(value)
 {
-	var useValidator = parseInt(this.option, 10);
-
-	if (typeof value == 'string' && 'false' !== useValidator) {
+	if (typeof value == 'string' && 'false' !== this.option) {
 		return /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(value);
 	}
 

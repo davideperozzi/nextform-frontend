@@ -1,6 +1,6 @@
 {
   "name": "nextform-frontend",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Frontend component for the nextform library",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
